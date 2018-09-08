@@ -1,6 +1,6 @@
 {
   "name": "coc-json",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Json extension for coc.nvim",
   "main": "lib/index.js",
   "publisher": "chemzqm",
@@ -12,6 +12,10 @@
     "build": "tsc -p tsconfig.json",
     "prepare": "yarn clean && yarn build"
   },
+  "activationEvents": [
+    "onLanguage:json",
+    "onLanguage:jsonc"
+  ],
   "contributes": {
     "configuration": {
       "type": "object",
