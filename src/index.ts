@@ -1,10 +1,10 @@
 import path from 'path'
-import os from 'os'
-import fs from 'fs'
 import { ExtensionContext, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature } from 'coc.nvim'
-import { TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind } from 'vscode-languageserver-protocol'
+import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
 import Uri from 'vscode-uri'
+import findUp from 'find-up'
+import { hash } from './utils/hash'
 
 type ProviderResult<T> =
   | T
@@ -16,12 +16,29 @@ interface ISchemaAssociations {
   [pattern: string]: string[]
 }
 
+interface Settings {
+  json?: {
+    schemas?: JSONSchemaSettings[]
+    format?: { enable: boolean; }
+  }
+  http?: {
+    proxy?: string
+    proxyStrictSSL?: boolean
+  }
+}
+
+interface JSONSchemaSettings {
+  fileMatch?: string[]
+  url?: string
+  schema?: any
+}
+
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
   const config = workspace.getConfiguration().get('json', {}) as any
   if (!config.enable) return
   const file = context.asAbsolutePath('lib/server/jsonServerMain.js')
-  const selector = config.filetypes || ['json', 'jsonc']
+  const selector = ['json', 'jsonc']
 
   let serverOptions: ServerOptions = {
     module: file,
@@ -36,10 +53,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   let clientOptions: LanguageClientOptions = {
     documentSelector: selector,
     synchronize: {
-      configurationSection: ['json', 'http']
+      configurationSection: ['json', 'http'],
+      fileEvents: workspace.createFileSystemWatcher('**/*.json')
     },
     outputChannelName: 'json',
     middleware: {
+      workspace: {
+        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
+      },
       // fix completeItem
       provideCompletionItem: (
         document: TextDocument,
@@ -115,7 +136,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // noop
   })
 
-  const miniProgrameRoot = resolveRoot(workspace.root, ['project.config.json'])
+  const projectFile = await findUp('project.config.json', {cwd: workspace.root})
+  const miniProgrameRoot = projectFile ? path.dirname(projectFile) : null
 
   function onDocumentCreate(document: TextDocument): void {
     if (!workspace.match(selector, document)) return
@@ -141,29 +163,72 @@ export async function activate(context: ExtensionContext): Promise<void> {
   workspace.onDidOpenTextDocument(onDocumentCreate, null, subscriptions)
 }
 
-export function resolveRoot(cwd: string, subs: string[], home?: string): string | null {
-  home = home || os.homedir()
-  let { root } = path.parse(cwd)
-  let paths = getParentDirs(cwd)
-  paths.unshift(cwd)
-  for (let p of paths) {
-    if (p == home || p == root) return null
-    for (let sub of subs) {
-      let d = path.join(p, sub)
-      if (fs.existsSync(d)) return path.dirname(d)
+function getSettings(): Settings {
+  let httpSettings = workspace.getConfiguration('http')
+
+  let settings: Settings = {
+    http: {
+      proxy: httpSettings.get('proxy'),
+      proxyStrictSSL: httpSettings.get('proxyStrictSSL')
+    },
+    json: {
+      format: workspace.getConfiguration('json').get('format'),
+      schemas: [],
     }
   }
-  return root
+  let schemaSettingsById: { [schemaId: string]: JSONSchemaSettings } = Object.create(null)
+  let collectSchemaSettings = (schemaSettings: JSONSchemaSettings[], rootPath?: string, fileMatchPrefix?: string) => {
+    for (let setting of schemaSettings) {
+      let url = getSchemaId(setting, rootPath)
+      if (!url) {
+        continue
+      }
+      let schemaSetting = schemaSettingsById[url]
+      if (!schemaSetting) {
+        schemaSetting = schemaSettingsById[url] = { url, fileMatch: [] }
+        settings.json!.schemas!.push(schemaSetting)
+      }
+      let fileMatches = setting.fileMatch
+      let resultingFileMatches = schemaSetting.fileMatch!
+        if (Array.isArray(fileMatches)) {
+          if (fileMatchPrefix) {
+            for (let fileMatch of fileMatches) {
+              if (fileMatch[0] === '/') {
+                resultingFileMatches.push(fileMatchPrefix + fileMatch)
+                resultingFileMatches.push(fileMatchPrefix + '/*' + fileMatch)
+              } else {
+                resultingFileMatches.push(fileMatchPrefix + '/' + fileMatch)
+                resultingFileMatches.push(fileMatchPrefix + '/*/' + fileMatch)
+              }
+            }
+          } else {
+            resultingFileMatches.push(...fileMatches)
+          }
+
+        }
+      if (setting.schema) {
+        schemaSetting.schema = setting.schema
+      }
+    }
+  }
+
+  // merge global and folder settings. Qualify all file matches with the folder path.
+  let globalSettings = workspace.getConfiguration('json', null).get<JSONSchemaSettings[]>('schemas')
+  if (Array.isArray(globalSettings)) {
+    collectSchemaSettings(globalSettings, workspace.root)
+  }
+  return settings
 }
 
-export function getParentDirs(fullpath: string): string[] {
-  let obj = path.parse(fullpath)
-  if (!obj || !obj.root) return []
-  let res = []
-  let p = path.dirname(fullpath)
-  while (p && p !== obj.root) {
-    res.push(p)
-    p = path.dirname(p)
+function getSchemaId(schema: JSONSchemaSettings, rootPath?: string) {
+  let url = schema.url
+  if (!url) {
+    if (schema.schema) {
+      url = schema.schema.id || `vscode://schemas/custom/${encodeURIComponent(hash(schema.schema).toString(16))}`
+    }
+  } else if (rootPath && (url[0] === '.' || url[0] === '/')) {
+    url = Uri.file(path.normalize(path.join(rootPath, url))).toString()
   }
-  return res
+  return url
 }
+

@@ -1,11 +1,11 @@
 {
   "name": "coc-json",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Json extension for coc.nvim",
   "main": "lib/index.js",
   "publisher": "chemzqm",
   "engines": {
-    "coc": "^0.0.15"
+    "coc": ">= 0.0.15"
   },
   "scripts": {
     "clean": "rimraf lib",
@@ -25,16 +25,6 @@
           "type": "boolean",
           "default": true,
           "description": "Enable json server"
-        },
-        "json.filetypes": {
-          "type": "array",
-          "default": [
-            "json",
-            "jsonc"
-          ],
-          "items": {
-            "type": "string"
-          }
         },
         "json.trace.server": {
           "type": "string",
@@ -99,13 +89,15 @@
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
     "@chemzqm/tslint-config": "^1.0.17",
+    "@types/find-up": "^2.1.1",
     "@types/node": "^10.9.4",
-    "coc.nvim": "^0.0.15",
+    "coc.nvim": "^0.0.16",
     "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
     "typescript": "^3.0.3"
   },
   "dependencies": {
+    "find-up": "^3.0.0",
     "request-light": "^0.2.3",
     "tslib": "^1.9.3",
     "vscode-json-languageservice": "^3.1.6",
