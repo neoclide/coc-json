@@ -101,9 +101,15 @@
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@types/find-up/-/find-up-2.1.1.tgz#1cd2d240f1ad1f48d32346074724dc3107248a11"
 
-"@types/node@^10.9.4":
-  version "10.9.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.9.4.tgz#0f4cb2dc7c1de6096055357f70179043c33e9897"
+"@types/mkdirp@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@types/mkdirp/-/mkdirp-0.5.2.tgz#503aacfe5cc2703d5484326b1b27efa67a339c1f"
+  dependencies:
+    "@types/node" "*"
+
+"@types/node@*", "@types/node@^10.11.4":
+  version "10.11.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.11.4.tgz#e8bd933c3f78795d580ae41d86590bfc1f4f389d"
 
 agent-base@4, agent-base@^4.1.0:
   version "4.2.1"
@@ -197,11 +203,12 @@ circular-json@^0.5.5:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/circular-json/-/circular-json-0.5.5.tgz#64182ef359042d37cd8e767fc9de878b1e9447d3"
 
-coc.nvim@^0.0.16:
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/coc.nvim/-/coc.nvim-0.0.16.tgz#14cc10cabfb47583cf68bef99420ae5bd9527009"
+coc.nvim@^0.0.23:
+  version "0.0.23"
+  resolved "https://registry.yarnpkg.com/coc.nvim/-/coc.nvim-0.0.23.tgz#8fe40852fa505f152ac42a5303706caf16e51572"
   dependencies:
     "@chemzqm/neovim" "4.3.23"
+    "@types/mkdirp" "^0.5.2"
     debounce "^1.2.0"
     deep-equal "^1.0.1"
     diff "^3.5.0"
@@ -212,16 +219,16 @@ coc.nvim@^0.0.16:
     jsonc-parser "^2.0.2"
     log4js "^3.0.5"
     minimatch "^3.0.4"
+    mkdirp "^0.5.1"
     node-json-db "^0.9.0"
     node-serial "^0.1.1"
-    once "^1.4.0"
     pify "^4.0.0"
     semver "^5.5.1"
     tslib "^1.9.3"
     uuid "^3.3.2"
-    vscode-languageserver "^5.0.3"
-    vscode-languageserver-protocol "^3.12.0"
-    vscode-languageserver-types "^3.12.0"
+    vscode-languageserver-protocol "^3.13.0"
+    vscode-languageserver-types "^3.13.0"
+    vscode-snippet-parser "^0.0.5"
     vscode-uri "^1.0.6"
     which "^1.3.1"
 
@@ -431,7 +438,7 @@ jsesc@^2.5.1:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.1.tgz#e421a2a8e20d6b0819df28908f782526b96dd1fe"
 
-jsonc-parser@^2.0.1, jsonc-parser@^2.0.2:
+jsonc-parser@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-2.0.2.tgz#42fcf56d70852a043fadafde51ddb4a85649978d"
 
@@ -511,7 +518,7 @@ node-serial@^0.1.1:
   dependencies:
     next-tick "~0.1.0"
 
-once@^1.3.0, once@^1.4.0:
+once@^1.3.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/once/-/once-1.4.0.tgz#583b1aa775961d4b113ac17d9c50baef9dd76bd1"
   dependencies:
@@ -565,13 +572,13 @@ readable-stream@^2.3.0:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-request-light@^0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/request-light/-/request-light-0.2.3.tgz#a18635ec6dd92f8705c019c42ef645f684d94f7e"
+request-light@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/request-light/-/request-light-0.2.4.tgz#3cea29c126682e6bcadf7915353322eeba01a755"
   dependencies:
     http-proxy-agent "^2.1.0"
     https-proxy-agent "^2.2.1"
-    vscode-nls "^3.2.2"
+    vscode-nls "^4.0.0"
 
 resolve@^1.3.2:
   version "1.8.1"
@@ -685,9 +692,9 @@ tsutils@^2.13.1, tsutils@^2.27.2:
   dependencies:
     tslib "^1.8.1"
 
-typescript@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.3.tgz#4853b3e275ecdaa27f78fda46dc273a7eb7fc1c8"
+typescript@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.1.1.tgz#3362ba9dd1e482ebb2355b02dfe8bcd19a2c7c96"
 
 util-deprecate@~1.0.1:
   version "1.0.2"
@@ -697,42 +704,46 @@ uuid@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
 
-vscode-json-languageservice@^3.1.6:
-  version "3.1.6"
-  resolved "https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-3.1.6.tgz#272e21eb9abcefe6c1ed38be141f0a76d5ddf0cd"
+vscode-json-languageservice@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-3.2.0.tgz#fe796c2ddbda966d87905442f9636f139e00f341"
   dependencies:
-    jsonc-parser "^2.0.1"
-    vscode-languageserver-types "^3.12.0"
-    vscode-nls "^3.2.4"
+    jsonc-parser "^2.0.2"
+    vscode-languageserver-types "^3.13.0"
+    vscode-nls "^4.0.0"
     vscode-uri "^1.0.6"
 
-vscode-jsonrpc@^3.6.2:
-  version "3.6.2"
-  resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-3.6.2.tgz#3b5eef691159a15556ecc500e9a8a0dd143470c8"
+vscode-jsonrpc@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-4.0.0.tgz#a7bf74ef3254d0a0c272fab15c82128e378b3be9"
 
-vscode-languageserver-protocol@^3.10.3, vscode-languageserver-protocol@^3.12.0:
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.12.0.tgz#5b23501292abad88f0463b01e83ff98e64a37652"
+vscode-languageserver-protocol@3.13.0, vscode-languageserver-protocol@^3.13.0:
+  version "3.13.0"
+  resolved "https://registry.yarnpkg.com/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.13.0.tgz#710d8e42119bb3affb1416e1e104bd6b4d503595"
   dependencies:
-    vscode-jsonrpc "^3.6.2"
-    vscode-languageserver-types "^3.12.0"
+    vscode-jsonrpc "^4.0.0"
+    vscode-languageserver-types "3.13.0"
 
-vscode-languageserver-types@^3.12.0:
-  version "3.12.0"
-  resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.12.0.tgz#f96051381b6a050b7175b37d6cb5d2f2eb64b944"
+vscode-languageserver-types@3.13.0, vscode-languageserver-types@^3.13.0:
+  version "3.13.0"
+  resolved "https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.13.0.tgz#b704b024cef059f7b326611c99b9c8753c0a18b4"
 
-vscode-languageserver@^5.0.3:
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/vscode-languageserver/-/vscode-languageserver-5.0.3.tgz#29a4655348868223d9b3b6e385a50e77c6f4992e"
+vscode-languageserver@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/vscode-languageserver/-/vscode-languageserver-5.1.0.tgz#012a28f154cc7a848c443d217894942e4c3eeb39"
   dependencies:
-    vscode-languageserver-protocol "^3.10.3"
-    vscode-uri "^1.0.5"
+    vscode-languageserver-protocol "3.13.0"
+    vscode-uri "^1.0.6"
 
-vscode-nls@^3.2.2, vscode-nls@^3.2.4:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-3.2.5.tgz#25520c1955108036dec607c85e00a522f247f1a4"
+vscode-nls@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-4.0.0.tgz#4001c8a6caba5cedb23a9c5ce1090395c0e44002"
 
-vscode-uri@^1.0.5, vscode-uri@^1.0.6:
+vscode-snippet-parser@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/vscode-snippet-parser/-/vscode-snippet-parser-0.0.5.tgz#86ff0439212265265283d9ca86ee1bd1e66fc322"
+
+vscode-uri@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-1.0.6.tgz#6b8f141b0bbc44ad7b07e94f82f168ac7608ad4d"
 

@@ -1,10 +1,11 @@
 import path from 'path'
-import { ExtensionContext, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature } from 'coc.nvim'
+import fs from 'fs'
 import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
 import Uri from 'vscode-uri'
 import findUp from 'find-up'
 import { hash } from './utils/hash'
+import { ExtensionContext, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature } from 'coc.nvim'
 
 type ProviderResult<T> =
   | T
@@ -39,6 +40,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (!config.enable) return
   const file = context.asAbsolutePath('lib/server/jsonServerMain.js')
   const selector = ['json', 'jsonc']
+  let schemaContent = await readFile(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
+  let settingsSchema = JSON.parse(schemaContent)
 
   let serverOptions: ServerOptions = {
     module: file,
@@ -127,7 +130,24 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
     client.onRequest('vscode/content', async uri => {
       if (uri == 'vscode://settings') {
-        return JSON.stringify((workspace as any).settingsScheme)
+        let schema: any = Object.assign({}, settingsSchema)
+        schema.properties = schema.properties || {}
+        extensions.all.forEach(extension => {
+          let { packageJSON } = extension
+          let { contributes } = packageJSON
+          if (!contributes) return
+          let { configuration } = contributes
+          if (configuration) {
+            let { properties } = configuration
+            if (properties) {
+              let props = schema.properties
+              for (let key of Object.keys(properties)) {
+                props[key] = properties[key]
+              }
+            }
+          }
+        })
+        return JSON.stringify(schema)
       }
       workspace.showMessage(`Unsupported json uri ${uri}`, 'error')
       return ''
@@ -136,7 +156,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // noop
   })
 
-  const projectFile = await findUp('project.config.json', {cwd: workspace.root})
+  const projectFile = await findUp('project.config.json', { cwd: workspace.root })
   const miniProgrameRoot = projectFile ? path.dirname(projectFile) : null
 
   function onDocumentCreate(document: TextDocument): void {
@@ -165,6 +185,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
 function getSettings(): Settings {
   let httpSettings = workspace.getConfiguration('http')
+  let schemas: JSONSchemaSettings[] = []
+  extensions.all.forEach(extension => {
+    let { packageJSON } = extension
+    let { contributes } = packageJSON
+    if (!contributes) return
+    let { jsonValidation } = contributes
+    if (jsonValidation && jsonValidation.length) {
+      schemas.push(...jsonValidation)
+    }
+  })
 
   let settings: Settings = {
     http: {
@@ -173,7 +203,7 @@ function getSettings(): Settings {
     },
     json: {
       format: workspace.getConfiguration('json').get('format'),
-      schemas: [],
+      schemas
     }
   }
   let schemaSettingsById: { [schemaId: string]: JSONSchemaSettings } = Object.create(null)
@@ -190,22 +220,22 @@ function getSettings(): Settings {
       }
       let fileMatches = setting.fileMatch
       let resultingFileMatches = schemaSetting.fileMatch!
-        if (Array.isArray(fileMatches)) {
-          if (fileMatchPrefix) {
-            for (let fileMatch of fileMatches) {
-              if (fileMatch[0] === '/') {
-                resultingFileMatches.push(fileMatchPrefix + fileMatch)
-                resultingFileMatches.push(fileMatchPrefix + '/*' + fileMatch)
-              } else {
-                resultingFileMatches.push(fileMatchPrefix + '/' + fileMatch)
-                resultingFileMatches.push(fileMatchPrefix + '/*/' + fileMatch)
-              }
+      if (Array.isArray(fileMatches)) {
+        if (fileMatchPrefix) {
+          for (let fileMatch of fileMatches) {
+            if (fileMatch[0] === '/') {
+              resultingFileMatches.push(fileMatchPrefix + fileMatch)
+              resultingFileMatches.push(fileMatchPrefix + '/*' + fileMatch)
+            } else {
+              resultingFileMatches.push(fileMatchPrefix + '/' + fileMatch)
+              resultingFileMatches.push(fileMatchPrefix + '/*/' + fileMatch)
             }
-          } else {
-            resultingFileMatches.push(...fileMatches)
           }
-
+        } else {
+          resultingFileMatches.push(...fileMatches)
         }
+
+      }
       if (setting.schema) {
         schemaSetting.schema = setting.schema
       }
@@ -220,7 +250,7 @@ function getSettings(): Settings {
   return settings
 }
 
-function getSchemaId(schema: JSONSchemaSettings, rootPath?: string) {
+function getSchemaId(schema: JSONSchemaSettings, rootPath?: string): string {
   let url = schema.url
   if (!url) {
     if (schema.schema) {
@@ -232,3 +262,11 @@ function getSchemaId(schema: JSONSchemaSettings, rootPath?: string) {
   return url
 }
 
+function readFile(fullpath: string, encoding: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    fs.readFile(fullpath, encoding, (err, content) => {
+      if (err) reject(err)
+      resolve(content)
+    })
+  })
+}
