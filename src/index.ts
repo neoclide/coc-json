@@ -78,7 +78,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           let items: CompletionItem[] = res.hasOwnProperty('isIncomplete') ? (res as CompletionList).items : res as CompletionItem[]
           let line = doc.getline(position.line)
           for (let item of items) {
-            let { textEdit, insertText, label } = item // tslint:disable-line
+            let { textEdit, insertText, label, filterText } = item // tslint:disable-line
             item.insertText = null // tslint:disable-line
             if (textEdit && textEdit.newText) {
               let newText = insertText || textEdit.newText
@@ -87,6 +87,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
               if (line[start.character] && line[end.character - 1] && /^".*"$/.test(label)) {
                 item.label = item.label.slice(1, -1)
               }
+            }
+            if (filterText && /^".*"$/.test(filterText)) {
+              item.filterText = filterText.slice(1, -1)
             }
           }
           let result: any = {
