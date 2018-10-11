@@ -82,7 +82,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             item.insertText = null // tslint:disable-line
             if (textEdit && textEdit.newText) {
               let newText = insertText || textEdit.newText
-              textEdit.newText = newText.replace(/(\n|\t)/g, '')
+              textEdit.newText = newText
               let { start, end } = textEdit.range
               if (line[start.character] && line[end.character - 1] && /^".*"$/.test(label)) {
                 item.label = item.label.slice(1, -1)
