@@ -96,7 +96,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             isIncomplete: false,
             items
           }
-          if (items.length && items[0].kind == CompletionItemKind.Property) {
+          if (items.length && items.every(o => o.kind == CompletionItemKind.Property)) {
             result.startcol = doc.fixStartcol(position, ['.'])
           }
           return result
