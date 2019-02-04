@@ -91,6 +91,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
             if (filterText && /^".*"$/.test(filterText)) {
               item.filterText = filterText.slice(1, -1)
             }
+            if (item.documentation) {
+              item.detail = typeof item.documentation == 'string' ? item.documentation : item.documentation.value
+              item.documentation = null
+            }
           }
           let result: any = {
             isIncomplete: false,
