@@ -1,6 +1,6 @@
 {
   "name": "coc-json",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Json extension for coc.nvim",
   "main": "lib/index.js",
   "publisher": "chemzqm",
