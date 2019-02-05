@@ -5,7 +5,7 @@ import catalog from './catalog.json'
 import Uri from 'vscode-uri'
 import findUp from 'find-up'
 import { hash } from './utils/hash'
-import { ExtensionContext, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature } from 'coc.nvim'
+import { ExtensionContext, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature } from 'coc.nvim'
 
 type ProviderResult<T> =
   | T
@@ -64,6 +64,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
       workspace: {
         didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
       },
+      resolveCompletionItem: (
+        item: CompletionItem,
+        token: CancellationToken,
+        next: ResolveCompletionItemSignature): ProviderResult<CompletionItem> => {
+        return Promise.resolve(next(item, token)).then((item: CompletionItem) => {
+          if (item.data.detail) {
+            item.detail = item.data.detail
+          }
+          return item
+        })
+      },
       // fix completeItem
       provideCompletionItem: (
         document: TextDocument,
@@ -92,7 +103,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
               item.filterText = filterText.slice(1, -1)
             }
             if (item.documentation) {
-              item.detail = typeof item.documentation == 'string' ? item.documentation : item.documentation.value
+              item.data = item.data || {}
+              item.data.detail = typeof item.documentation == 'string' ? item.documentation : item.documentation.value
               item.documentation = null
             }
           }
