@@ -157,13 +157,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
           if (!contributes) return
           let { configuration } = contributes
           if (configuration) {
-            let { properties } = configuration
-            if (properties) {
-              let props = schema.properties
-              for (let key of Object.keys(properties)) {
-                props[key] = properties[key]
-              }
-            }
+            let { properties, definitions } = configuration
+            if (properties) Object.assign(schema.properties, properties)
+            if (definitions) Object.assign(schema.definitions, definitions)
           }
         })
         return JSON.stringify(schema)
