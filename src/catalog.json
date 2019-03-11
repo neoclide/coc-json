@@ -1,5 +1,6 @@
 {
   "$schema": "http://json.schemastore.org/schema-catalog",
+
   "version": 1.0,
   "schemas": [
     {
@@ -29,6 +30,12 @@
       "url": "http://json.schemastore.org/apple-app-site-association"
     },
     {
+      "name": "appsscript.json",
+      "description": "Google Apps Script manifest file",
+      "fileMatch": [ "appsscript.json" ],
+      "url": "http://json.schemastore.org/appsscript"
+    },
+    {
       "name": "appsettings.json",
       "description": "ASP.NET Core's configuration file",
       "fileMatch": [ "appsettings.json", "appsettings.*.json" ],
@@ -45,6 +52,23 @@
       "description": "Avro Schema Avsc file",
       "fileMatch": [ ".avsc" ],
       "url": "http://json.schemastore.org/avro-avsc"
+    },
+    {
+      "name": "Azure IoT Edge deployment",
+      "description": "Azure IoT Edge deployment schema",
+      "url": "http://json.schemastore.org/azure-iot-edge-deployment-1.0",
+      "versions": {
+        "1.0": "http://json.schemastore.org/azure-iot-edge-deployment-1.0"
+      }
+    },
+	{
+      "name": "Azure IoT Edge deployment template",
+      "description": "Azure IoT Edge deployment template schema",
+      "fileMatch": [ "deployment.template.json", "deployment.*.template.json" ],
+      "url": "http://json.schemastore.org/azure-iot-edge-deployment-template-1.0",
+      "versions": {
+        "1.0": "http://json.schemastore.org/azure-iot-edge-deployment-template-1.0"
+      }
     },
     {
       "name": "Foxx Manifest",
@@ -89,10 +113,34 @@
       "url": "http://json.schemastore.org/bowerrc"
     },
     {
+      "name": "bozr.suite.json",
+      "description": "Bozr test suite file",
+      "fileMatch": [".suite.json", ".xsuite.json"],
+      "url": "http://json.schemastore.org/bozr"
+    },
+    {
+      "name": "Bukkit plugin.yml",
+      "description": "Schema for Minecraft Bukkit plugin description files",
+      "fileMatch": [ "plugin.yml" ],
+      "url": "http://json.schemastore.org/bukkit-plugin"
+    },
+    {
+      "name": "Buildkite",
+      "description": "Schema for Buildkite pipeline.yml files",
+      "fileMatch": [ "buildkite.yml", "buildkite.yaml", "buildkite.json", "buildkite.*.yml", "buildkite.*.yaml", "buildkite.*.json", ".buildkite/pipeline.yml", ".buildkite/pipeline.yaml", ".buildkite/pipeline.json", ".buildkite/pipeline.*.yml", ".buildkite/pipeline.*.yaml", ".buildkite/pipeline.*.json" ],
+      "url": "https://raw.githubusercontent.com/buildkite/pipeline-schema/master/schema.json"
+    },
+    {
       "name": "bundleconfig.json",
       "description": "Schema for bundleconfig.json files",
       "fileMatch": [ "bundleconfig.json" ],
       "url": "http://json.schemastore.org/bundleconfig"
+    },
+    {
+      "name": "BungeeCord plugin.yml",
+      "description": "Schema for BungeeCord plugin description files",
+      "fileMatch": [ "plugin.yml", "bungee.yml" ],
+      "url": "http://json.schemastore.org/bungee-plugin"
     },
     {
       "name": "circleciconfig.json",
@@ -105,6 +153,12 @@
       "description": "Cirrus CI configuration files",
       "fileMatch": [ ".cirrus.yml" ],
       "url": "http://json.schemastore.org/cirrus"
+    },
+    {
+      "name": ".clasp.json",
+      "description": "Google Apps Script CLI project file",
+      "fileMatch": [ ".clasp.json" ],
+      "url": "http://json.schemastore.org/clasp"
     },
     {
       "name": "compilerconfig.json",
@@ -202,6 +256,18 @@
       "url": "http://json.schemastore.org/csslintrc"
     },
     {
+      "name": "datalogic-scan2deploy-android",
+      "description": "Datalogic Scan2Deploy Android file",
+      "fileMatch": [ ".dla.json" ],
+      "url": "http://json.schemastore.org/datalogic-scan2deploy-android"
+    },
+    {
+      "name": "datalogic-scan2deploy-ce",
+      "description": "Datalogic Scan2Deploy CE file",
+      "fileMatch": [ ".dlc.json" ],
+      "url": "http://json.schemastore.org/datalogic-scan2deploy-ce"
+    },
+    {
       "name": "debugsettings.json",
       "description": "A JSON schema for the ASP.NET DebugSettings.json files",
       "fileMatch": [ "debugsettings.json" ],
@@ -217,10 +283,63 @@
       }
     },
     {
+      "name": "Dolittle Artifacts",
+      "description": "A JSON schema for a Dolittle bounded context's artifacts",
+      "fileMatch": [ ".dolittle/artifacts.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/DotNET.SDK/master/Schemas/Artifacts.Configuration/artifacts.json"
+    },
+    {
+      "name": "Dolittle Bounded Context Configuration",
+      "description": "A JSON schema for Dolittle application's bounded context configuration",
+      "fileMatch": [ "bounded-context.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/Runtime/master/Schemas/Applications.Configuration/bounded-context.json"
+    },
+    {
+      "name": "Dolittle Event Horizons Configuration",
+      "description": "A JSON schema for a Dolittle bounded context's event horizon configurations",
+      "fileMatch": [ ".dolittle/event-horizons.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/Runtime/master/Schemas/Events/event-horizons.json"
+    },
+    {
+      "name": "Dolittle Resources Configuration",
+      "description": "A JSON schema for a Dolittle bounded context's resource configurations",
+      "fileMatch": [ ".dolittle/resources.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/DotNET.Fundamentals/master/Schemas/ResourceTypes.Configuration/resources.json"
+    },
+    {
+      "name": "Dolittle Server Configuration",
+      "description": "A JSON schema for a Dolittle bounded context's event horizon's interaction server configuration",
+      "fileMatch": [ ".dolittle/server.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/Runtime/master/Schemas/Server/server.json"
+    },
+    {
+      "name": "Dolittle Tenants Configuration",
+      "description": "A JSON schema for a Dolittle bounded context's tenant configuration",
+      "fileMatch": [ ".dolittle/tenants.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/Runtime/master/Schemas/Tenancy/tenants.json"
+    },
+    {
+      "name": "Dolittle Tenant Map Configuration",
+      "description": "A JSON schema for a Dolittle bounded context's tenant mapping configurations",
+      "fileMatch": [ ".dolittle/tenant-map.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/DotNET.Fundamentals/master/Schemas/Tenancy.Configuration/tenant-map.json"
+    },
+    {
+      "name": "Dolittle Topology",
+      "description": "A JSON schema for a Dolittle bounded context's topology",
+      "fileMatch": [ ".dolittle/topology.json" ],
+      "url": "https://raw.githubusercontent.com/dolittle/DotNET.SDK/master/Schemas/Applications.Configuration/topology.json"
+    },
+    {
       "name": "dotnetcli.host.json",
       "description": "JSON schema for .NET CLI template host files",
       "fileMatch": [ "dotnetcli.host.json" ],
       "url": "http://json.schemastore.org/dotnetcli.host"
+    },
+    {
+      "name": "dss-2.0.0.json",
+      "description": "Digital Signature Service Core Protocols, Elements, and Bindings Version 2.0",
+      "url": "http://json.schemastore.org/dss-2.0.0.json"
     },
     {
       "name": "epr-manifest.json",
@@ -231,7 +350,7 @@
     {
       "name": ".eslintrc",
       "description": "JSON schema for ESLint configuration files",
-      "fileMatch": [ ".eslintrc", ".eslintrc.json" ],
+      "fileMatch": [ ".eslintrc", ".eslintrc.json", ".eslintrc.yml", ".eslintrc.yaml" ],
       "url": "http://json.schemastore.org/eslintrc"
     },
     {
@@ -244,6 +363,12 @@
       "name": "geojson.json",
       "description": "GeoJSON format for representing geographic data.",
       "url": "http://json.schemastore.org/geojson"
+    },
+    {
+      "name": "gitlab-ci",
+      "description": "JSON schema for configuring Gitlab CI",
+      "fileMatch": [ ".gitlab-ci.yml" ],
+      "url": "http://json.schemastore.org/gitlab-ci"
     },
     {
       "name": "global.json",
@@ -430,6 +555,18 @@
       "url": "http://json.schemastore.org/ninjs"
     },
     {
+      "name": "nodemon.json",
+      "description": "JSON schema for nodemon.json configuration files.",
+      "url": "http://json.schemastore.org/nodemon",
+      "fileMatch": ["nodemon.json"]
+    },
+    {
+      "name": ".npmpackagejsonlintrc",
+      "description": "Configuration file for npm-package-json-lint",
+      "fileMatch": [ ".npmpackagejsonlintrc", "npmpackagejsonlintrc.json", ".npmpackagejsonlintrc.json" ],
+      "url": "http://json.schemastore.org/npmpackagejsonlintrc"
+    },
+    {
       "name": "nuget-project.json",
       "description": "JSON schema for NuGet project.json files.",
       "url": "http://json.schemastore.org/nuget-project",
@@ -438,10 +575,28 @@
       }
     },
     {
+      "name": "nswag.json",
+      "description": "JSON schema for nswag configuration",
+      "url": "http://json.schemastore.org/nswag",
+      "fileMatch": ["nswag.json"]
+    },
+    {
+      "name": "ocelot.json",
+      "description": "JSON schema for the Ocelot Api Gateway.",
+      "fileMatch": [ "ocelot.json" ],
+      "url": "http://json.schemastore.org/ocelot"
+    },
+    {
       "name": "omnisharp.json",
       "description": "Omnisharp Configuration file",
       "fileMatch": [ "omnisharp.json" ],
       "url": "http://json.schemastore.org/omnisharp"
+    },
+    {
+      "name": "openapi.json",
+      "description": "A JSON schema for Open API documentation files",
+      "fileMatch": [ "openapi.json", "openapi.yml", "openapi.yaml" ],
+      "url": "https://raw.githubusercontent.com/kogosoftwarellc/open-api/master/packages/openapi-schema-validator/resources/openapi-3.0.json"
     },
     {
       "name": "openfin.json",
@@ -458,13 +613,23 @@
       "name": "package.manifest",
       "description": "Umbraco package configuration file",
       "fileMatch": [ "package.manifest" ],
-      "url": "http://json.schemastore.org/package.manifest"
+      "url": "http://json.schemastore.org/package.manifest",
+      "versions": {
+        "8.0.0": "http://json.schemastore.org/package.manifest-8.0.0",
+        "7.0.0": "http://json.schemastore.org/package.manifest-7.0.0"
+      }
     },
     {
       "name": "pattern.json",
       "description": "Patternplate pattern manifest file",
       "fileMatch": [ "pattern.json" ],
       "url": "http://json.schemastore.org/pattern"
+    },
+    {
+      "name": "PocketMine plugin.yml",
+      "description": "PocketMine plugin manifest file",
+      "fileMatch": [ "plugin.yml" ],
+      "url": "http://json.schemastore.org/pocketmine-plugin"
     },
     {
       "name": ".phraseapp.yml",
@@ -545,6 +710,12 @@
       "url": "http://json.schemastore.org/proxies"
     },
     {
+      "name": "pyrseas-0.8.json",
+      "description": "Pyrseas database schema versioning for Postgres databases, v0.8",
+      "fileMatch": [ "pyrseas-0.8.json" ],
+      "url": "http://json.schemastore.org/pyrseas-0.8"
+    },
+    {
       "name": "*.resjson",
       "description": "Windows App localization file",
       "fileMatch": [ "*.resjson" ],
@@ -564,29 +735,18 @@
     },
     {
       "name": "sarif-1.0.0.json",
-      "description": "Static Analysis Results Interchange Format (SARIF)",
-      "fileMatch": [ "*.sarif", "*.sarif.json" ],
-      "url": "http://json.schemastore.org/sarif",
-      "versions": {
-        "1.0.0-beta.4": "http://json.schemastore.org/sarif-1.0.0-beta.4.json",
-        "1.0.0-beta.5": "http://json.schemastore.org/sarif-1.0.0-beta.5.json",
-        "1.0.0": "http://json.schemastore.org/sarif-1.0.0"
-      }
-    },
-    {
-      "name": "sarif-1.0.0.json",
-      "description": "Static Analysis Results Interchange Format (SARIF)",
+      "description": "Static Analysis Results Interchange Format (SARIF) version 1",
       "url": "http://json.schemastore.org/sarif-1.0.0.json"
     },
     {
-      "name": "sarif-1.0.0-beta.5.json",
-      "description": "Static Analysis Results Interchange Format (SARIF)",
-      "url": "http://json.schemastore.org/sarif-1.0.0-beta.5.json"
+      "name": "sarif-2.0.0.json",
+      "description": "Static Analysis Results Interchange Format (SARIF) version 2",
+      "url": "http://json.schemastore.org/sarif-2.0.0.json"
     },
     {
-      "name": "sarif-1.0.0-beta.4.json",
-      "description": "Static Analysis Results Interchange Format (SARIF)",
-      "url": "http://json.schemastore.org/sarif-1.0.0-beta.4.json"
+      "name": "2.0.0-csd.2.beta.2018-10-10",
+      "description": "Static Analysis Results Format (SARIF) Version 2.0.0-csd.2.beta-2018-10-10",
+      "url": "http://json.schemastore.org/2.0.0-csd.2.beta.2018-10-10.json"
     },
     {
       "name": "Schema Catalog",
@@ -674,6 +834,12 @@
       "url": "http://json.schemastore.org/templatesources"
     },
     {
+      "name": "tmLanguage",
+      "description": "Language grammar description files in Textmate and compatible editors",
+      "fileMatch": [ "*.tmLanguage.json" ],
+      "url": "https://raw.githubusercontent.com/Septh/tmlanguage/master/tmLanguage.schema.json"
+    },
+    {
       "name": ".travis.yml",
       "description": "Travis CI configuration file",
       "fileMatch": [ ".travis.yml" ],
@@ -700,7 +866,7 @@
     {
       "name": "tslint.json",
       "description": "TypeScript Lint configuration file",
-      "fileMatch": [ "tslint.json" ],
+      "fileMatch": [ "tslint.json", "tslint.yaml", "tslint.yml" ],
       "url": "http://json.schemastore.org/tslint"
     },
     {
@@ -782,8 +948,9 @@
       "url": "http://json.schemastore.org/vsix-publish"
     },
     {
-      "name": "Web Extensions",
-      "description": "JSON schema for Web Extensions manifest files",
+      "name": "WebExtensions",
+      "description": "JSON schema for WebExtension manifest files",
+      "fileMatch": [ "manifest.json" ],
       "url": "http://json.schemastore.org/webextension"
     },
     {
@@ -810,8 +977,8 @@
       "url": "https://json-stat.org/format/schema/2.0/"
     },
     {
-      "name": "KSP-CKAN 1.22",
-      "description": "Metadata spec v1.22 for KSP-CKAN",
+      "name": "KSP-CKAN 1.25",
+      "description": "Metadata spec v1.25 for KSP-CKAN",
       "fileMatch": [ "*.ckan" ],
       "url": "http://json.schemastore.org/ksp-ckan-1.16"
     },
