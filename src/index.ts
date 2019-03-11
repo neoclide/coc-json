@@ -35,7 +35,7 @@ interface JSONSchemaSettings {
 }
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  let { subscriptions } = context
+  let { subscriptions, logger } = context
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
   const file = context.asAbsolutePath('lib/server/jsonServerMain.js')
@@ -164,8 +164,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         })
         return JSON.stringify(schema)
       }
-      workspace.showMessage(`Unsupported json uri ${uri}`, 'error')
-      return ''
+      logger.error(`Unknown schema for ${uri}`)
+      return '{}'
     })
   }, _e => {
     // noop
@@ -207,7 +207,12 @@ function getSettings(): Settings {
     if (!contributes) return
     let { jsonValidation } = contributes
     if (jsonValidation && jsonValidation.length) {
-      schemas.push(...jsonValidation)
+      for (let item of jsonValidation) {
+        let { url } = item
+        let file = path.join(extension.extensionPath, url)
+        if (fs.existsSync(file)) item.url = Uri.file(file).toString()
+        schemas.push(item)
+      }
     }
   })
 
