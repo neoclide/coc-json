@@ -1,11 +1,15 @@
 import path from 'path'
 import fs from 'fs'
-import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind } from 'vscode-languageserver-protocol'
+import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
 import Uri from 'vscode-uri'
 import findUp from 'find-up'
 import { hash } from './utils/hash'
-import { ExtensionContext, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature } from 'coc.nvim'
+import { commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+
+namespace ForceValidateRequest {
+  export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
+}
 
 type ProviderResult<T> =
   | T
@@ -42,6 +46,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const selector = ['json', 'jsonc']
   let schemaContent = await readFile(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
   let settingsSchema = JSON.parse(schemaContent)
+  let fileSchemaErrors = new Map<string, string>()
+  let statusItem = workspace.createStatusBarItem(0)
+  statusItem.text = '⚠️'
+
+  events.on('BufEnter', bufnr => {
+    let doc = workspace.getDocument(bufnr)
+    if (doc && fileSchemaErrors.has(doc.uri)) {
+      statusItem.show()
+    } else {
+      statusItem.hide()
+    }
+  }, null, subscriptions)
 
   let serverOptions: ServerOptions = {
     module: file,
@@ -63,6 +79,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
     middleware: {
       workspace: {
         didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
+      },
+      handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
+        const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
+        if (schemaErrorIndex === -1) {
+          fileSchemaErrors.delete(uri.toString())
+          return next(uri, diagnostics)
+        }
+        const schemaResolveDiagnostic = diagnostics[schemaErrorIndex]
+        fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
+        let doc = workspace.getDocument(uri)
+        if (doc && doc.uri == uri) {
+          statusItem.show()
+        }
+        next(uri, diagnostics)
       },
       resolveCompletionItem: (
         item: CompletionItem,
@@ -191,6 +221,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   }
   workspace.onDidOpenTextDocument(onDocumentCreate, null, subscriptions)
+  workspace.onDidCloseTextDocument(doc => {
+    fileSchemaErrors.delete(doc.uri)
+  }, null, subscriptions)
+
+  subscriptions.push(commands.registerCommand('json.retryResolveSchema', async () => {
+    let doc = await workspace.document
+    if (!doc || ['json', 'jsonc'].indexOf(doc.filetype) == -1) return
+    statusItem.isProgress = true
+    statusItem.text = 'loading'
+    statusItem.show()
+    client.sendRequest(ForceValidateRequest.type, doc.uri).then(diagnostics => {
+      statusItem.text = '⚠️'
+      statusItem.isProgress = false
+      const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
+      if (schemaErrorIndex !== -1) {
+        // Show schema resolution errors in status bar only; ref: #51032
+        const schemaResolveDiagnostic = diagnostics[schemaErrorIndex]
+        fileSchemaErrors.set(doc.uri, schemaResolveDiagnostic.message)
+        statusItem.show()
+      } else {
+        statusItem.hide()
+      }
+    }, () => {
+      statusItem.show()
+      statusItem.isProgress = false
+      statusItem.text = '⚠️'
+    })
+  }))
 }
 
 function getSettings(): Settings {

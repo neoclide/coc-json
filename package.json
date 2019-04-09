@@ -94,11 +94,11 @@
     "@chemzqm/tsconfig": "^0.0.3",
     "@chemzqm/tslint-config": "^1.0.18",
     "@types/find-up": "^2.1.1",
-    "@types/node": "^11.11.0",
-    "coc.nvim": "^0.0.58",
+    "@types/node": "^11.13.2",
+    "coc.nvim": "^0.0.62",
     "rimraf": "^2.6.3",
-    "tslint": "^5.13.1",
-    "typescript": "^3.3.3333"
+    "tslint": "^5.15.0",
+    "typescript": "^3.4.2"
   },
   "dependencies": {
     "tslib": "^1.9.3",
@@ -106,7 +106,6 @@
     "request-light": "^0.2.4",
     "vscode-json-languageservice": "^3.3.0-next.6",
     "vscode-languageserver": "^5.3.0-next.2",
-    "vscode-nls": "^4.0.0",
     "vscode-uri": "^1.0.6"
   }
 }
