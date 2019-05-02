@@ -176,6 +176,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (uri == 'vscode://settings') {
         let schema: any = Object.assign({}, settingsSchema)
         schema.properties = schema.properties || {}
+        if (extensions.schemes) Object.assign(schema.properties, extensions.schemes)
         extensions.all.forEach(extension => {
           let { packageJSON } = extension
           let { contributes } = packageJSON
