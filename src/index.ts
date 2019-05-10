@@ -167,6 +167,30 @@ export async function activate(context: ExtensionContext): Promise<void> {
         associations[fileMatch] = [url]
       }
     }
+    extensions.all.forEach(extension => {
+      let { packageJSON } = extension
+      let { contributes } = packageJSON
+      if (!contributes) return
+      let { jsonValidation } = contributes
+      if (jsonValidation && jsonValidation.length) {
+        for (let item of jsonValidation) {
+          let { url, fileMatch } = item
+          // fileMatch
+          if (url && !/^http(s)?:/.test(url)) {
+            let file = path.join(extension.extensionPath, url)
+            if (fs.existsSync(file)) url = Uri.file(file).toString()
+          }
+          if (url) {
+            let curr = associations[fileMatch]
+            if (!curr) {
+              associations[fileMatch] = [url]
+            } else if (curr && curr.indexOf(url) == -1) {
+              curr.push(url)
+            }
+          }
+        }
+      }
+    })
 
     associations['coc-settings.json'] = ['vscode://settings']
     associations['app.json'] = [Uri.file(context.asAbsolutePath('data/app.json')).toString()]
@@ -254,22 +278,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
 function getSettings(): Settings {
   let httpSettings = workspace.getConfiguration('http')
-  let schemas: JSONSchemaSettings[] = []
-  extensions.all.forEach(extension => {
-    let { packageJSON } = extension
-    let { contributes } = packageJSON
-    if (!contributes) return
-    let { jsonValidation } = contributes
-    if (jsonValidation && jsonValidation.length) {
-      for (let item of jsonValidation) {
-        let { url } = item
-        let file = path.join(extension.extensionPath, url)
-        if (fs.existsSync(file)) item.url = Uri.file(file).toString()
-        schemas.push(item)
-      }
-    }
-  })
-
   let settings: Settings = {
     http: {
       proxy: httpSettings.get('proxy'),
@@ -277,7 +285,7 @@ function getSettings(): Settings {
     },
     json: {
       format: workspace.getConfiguration('json').get('format'),
-      schemas
+      schemas: []
     }
   }
   let schemaSettingsById: { [schemaId: string]: JSONSchemaSettings } = Object.create(null)
