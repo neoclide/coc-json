@@ -214,7 +214,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       let arr = ['page', 'component'].map(str => {
         return Uri.file(context.asAbsolutePath(`data/${str}.json`)).toString()
       })
-      associations[file] = arr
+      associations['/' + file] = arr
     }
     if (Object.keys(associations).length > 0) {
       client.sendNotification('json/schemaAssociations', associations)
