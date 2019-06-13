@@ -2,10 +2,8 @@ import path from 'path'
 import fs from 'fs'
 import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
-import Uri from 'vscode-uri'
-import findUp from 'find-up'
 import { hash } from './utils/hash'
-import { commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+import { Uri, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
@@ -154,7 +152,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   client.onReady().then(() => {
     for (let doc of workspace.documents) {
-      onDocumentCreate(doc.textDocument)
+      onDocumentCreate(doc.textDocument).catch(_e => {
+        // noop
+      })
     }
     let associations: ISchemaAssociations = {}
     for (let item of catalog.schemas) {
@@ -221,16 +221,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // noop
   })
 
-  const projectFile = await findUp('project.config.json', { cwd: workspace.root })
-  const miniProgrameRoot = projectFile ? path.dirname(projectFile) : null
-
-  function onDocumentCreate(document: TextDocument): void {
+  async function onDocumentCreate(document: TextDocument): Promise<void> {
     if (!workspace.match(selector, document)) return
     if (client.serviceState !== ServiceStat.Running) return
     let file = Uri.parse(document.uri).fsPath
     let associations: ISchemaAssociations = {}
     let content = document.getText()
     if (content.indexOf('"$schema"') !== -1) return
+    let miniProgrameRoot = await workspace.resolveRootFolder(Uri.parse(document.uri), ['project.config.json'])
     if (miniProgrameRoot) {
       if (path.dirname(file) == miniProgrameRoot) {
         return

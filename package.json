@@ -9,7 +9,7 @@
     "json"
   ],
   "engines": {
-    "coc": ">= 0.0.24"
+    "coc": ">= 0.0.70"
   },
   "scripts": {
     "clean": "rimraf lib",
@@ -93,16 +93,14 @@
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
     "@chemzqm/tslint-config": "^1.0.18",
-    "@types/find-up": "^2.1.1",
     "@types/node": "^11.13.10",
-    "coc.nvim": "^0.0.67",
+    "coc.nvim": "^0.0.70",
     "rimraf": "^2.6.3",
     "tslint": "^5.16.0",
     "typescript": "^3.4.4"
   },
   "dependencies": {
     "tslib": "^1.9.3",
-    "find-up": "^3.0.0",
     "request-light": "^0.2.4",
     "vscode-json-languageservice": "^3.3.0-next.7",
     "vscode-languageserver": "^5.3.0-next.6",
