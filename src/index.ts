@@ -40,7 +40,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions, logger } = context
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
-  const file = context.asAbsolutePath('lib/server/jsonServerMain.js')
+  const file = context.asAbsolutePath('lib/server.js')
   const selector = ['json', 'jsonc']
   let schemaContent = await readFile(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
   let settingsSchema = JSON.parse(schemaContent)
