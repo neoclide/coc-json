@@ -11,7 +11,7 @@ import {
 
 import { xhr, XHRResponse, configure as configureHttpRequests, getErrorStatusDescription } from 'request-light';
 import * as fs from 'fs';
-import URI from 'vscode-uri';
+import { URI } from 'vscode-uri';
 import * as URL from 'url';
 import { formatError, runSafe, runSafeAsync } from './utils/runner';
 import { JSONDocument, JSONSchema, getLanguageService, DocumentLanguageSettings, SchemaConfiguration } from 'vscode-json-languageservice';
