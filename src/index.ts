@@ -59,7 +59,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   let serverOptions: ServerOptions = {
     module: file,
-    args: ['--node-ipc'],
     transport: TransportKind.ipc,
     options: {
       cwd: workspace.root,
