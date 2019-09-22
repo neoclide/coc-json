@@ -36,6 +36,23 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 * `json.format.enable` set to `false` to disable format.
 * `json.schemas` schema associations for json files.
 
+## FAQ
+
+### How to suppress error `[json 521] [e] Comments are not permitted in JSON`?
+
+You can configure your vim to make that file with jsonc filetype to allow comment.
+
+### How to add custom schema definitions/properties?
+
+You have two choices:
+
+* use `$schema` in your json.
+* create json schema file and then configure `json.schemes` in your `coc-settings.json`, check out https://github.com/neoclide/coc-json/blob/master/package.json#L55
+
+### Quotes are hidden?
+
+This is not caused by coc-json, you may checkout the `conceallevel` option.
+
 ## License
 
 MIT
