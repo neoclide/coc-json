@@ -19,22 +19,23 @@ Same as VSCode.
 
 All features of [vscode-json-languageservice](https://www.npmjs.com/package/vscode-json-languageservice) are supported.
 
-* `doCompletion` for JSON properties and values based on the document's JSON schema.
-* `doHover`  for values based on descriptions in the document's JSON schema.<Paste>
-* Document Symbols for quick navigation to properties in the document.
-* Document Colors for showing color decorators on values representing colors.
-* Code Formatting supporting ranges and formatting the whole document.
-* Diagnostics (Validation) are pushed for all open documents
-    * syntax errors
-    * structural validation based on the document's JSON schema.
+- `doCompletion` for JSON properties and values based on the document's JSON schema.
+- `doHover` for values based on descriptions in the document's JSON schema.<Paste>
+- Document Symbols for quick navigation to properties in the document.
+- Document Colors for showing color decorators on values representing colors.
+- Code Formatting supporting ranges and formatting the whole document.
+- Diagnostics (Validation) are pushed for all open documents
+  - syntax errors
+  - structural validation based on the document's JSON schema.
 
 ## Configuration options
 
-* `json.enable` set to `false` to disable json language server.
-* `json.trace.server` trace LSP traffic in output channel.
-* `json.execArgv` add `execArgv` to `child_process.spawn`
-* `json.format.enable` set to `false` to disable format.
-* `json.schemas` schema associations for json files.
+- `json.enable` set to `false` to disable json language server.
+- `json.trace.server` trace LSP traffic in output channel.
+- `json.execArgv` add `execArgv` to `child_process.fork` used for start
+  json language server.
+- `json.format.enable` set to `false` to disable format.
+- `json.schemas` schema associations for json files.
 
 ## FAQ
 
