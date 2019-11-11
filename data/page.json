@@ -65,6 +65,6 @@
       "type": "boolean",
       "description": "禁止页面右滑手势返回,微信客户端 7.0.0",
       "default": false
-    },
+    }
   }
 }
