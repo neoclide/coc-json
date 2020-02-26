@@ -192,7 +192,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     })
 
     associations['coc-settings.json'] = ['vscode://settings']
-    associations['app.json'] = [Uri.file(context.asAbsolutePath('data/app.json')).toString()]
     client.sendNotification('json/schemaAssociations', associations)
 
     client.onRequest('vscode/content', async uri => {
@@ -236,6 +235,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         return Uri.file(context.asAbsolutePath(`data/${str}.json`)).toString()
       })
       associations['/' + file] = arr
+      associations['app.json'] = [Uri.file(context.asAbsolutePath('data/app.json')).toString()]
     }
     if (Object.keys(associations).length > 0) {
       client.sendNotification('json/schemaAssociations', associations)
