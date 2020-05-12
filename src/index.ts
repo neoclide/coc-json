@@ -45,16 +45,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
   let schemaContent = await readFile(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
   let settingsSchema = JSON.parse(schemaContent)
   let fileSchemaErrors = new Map<string, string>()
-  let statusItem = workspace.createStatusBarItem(0)
-  statusItem.text = '⚠️'
-
   events.on('BufEnter', bufnr => {
     let doc = workspace.getDocument(bufnr)
-    if (doc && fileSchemaErrors.has(doc.uri)) {
-      statusItem.show()
-    } else {
-      statusItem.hide()
-    }
+    if (!doc) return
+    let msg = fileSchemaErrors.get(doc.uri)
+    if (msg) workspace.showMessage(`Schema error: ${msg}`, 'warning')
   }, null, subscriptions)
 
   let serverOptions: ServerOptions = {
@@ -73,12 +68,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       fileEvents: workspace.createFileSystemWatcher('**/*.json')
     },
     outputChannelName: 'json',
+    diagnosticCollectionName: 'json',
     middleware: {
       workspace: {
         didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
       },
       handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
         const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
+        if (uri.endsWith('coc-settings.json')) {
+          diagnostics = diagnostics.filter(o => o.code != 521)
+        }
         if (schemaErrorIndex === -1) {
           fileSchemaErrors.delete(uri.toString())
           return next(uri, diagnostics)
@@ -87,7 +86,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
         let doc = workspace.getDocument(uri)
         if (doc && doc.uri == uri) {
-          statusItem.show()
+          workspace.showMessage(`Schema error: ${schemaResolveDiagnostic.message}`, 'warning')
         }
         next(uri, diagnostics)
       },
@@ -247,11 +246,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
     fileSchemaErrors.delete(doc.uri)
   }, null, subscriptions)
 
+  let statusItem = workspace.createStatusBarItem(0, { progress: true })
+  subscriptions.push(statusItem)
   subscriptions.push(commands.registerCommand('json.retryResolveSchema', async () => {
     let doc = await workspace.document
     if (!doc || ['json', 'jsonc'].indexOf(doc.filetype) == -1) return
     statusItem.isProgress = true
-    statusItem.text = 'loading'
+    statusItem.text = 'loading schema'
     statusItem.show()
     client.sendRequest(ForceValidateRequest.type, doc.uri).then(diagnostics => {
       statusItem.text = '⚠️'
