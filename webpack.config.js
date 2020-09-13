@@ -3,7 +3,7 @@ const path = require('path')
 module.exports = {
   entry: {
     index: './src/index.ts',
-    server: './server/jsonServerMain.ts'
+    server: './server/node/jsonServerMain.ts'
   },
   target: 'node',
   mode: 'none',
@@ -21,8 +21,10 @@ module.exports = {
       use: [{
         loader: 'ts-loader',
         options: {
+          transpileOnly: true,
+          experimentalWatchApi: true,
           compilerOptions: {
-            "sourceMap": true,
+            sourceMap: true
           }
         }
       }]

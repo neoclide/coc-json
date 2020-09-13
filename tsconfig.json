@@ -7,9 +7,9 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitThis": true,
-    "lib": ["es2018"],
+    "lib": ["es2017", "es2018", "es2019"],
     "plugins": []
   },
-  "include": ["src"],
+  "include": ["src", "server"],
   "exclude": []
 }

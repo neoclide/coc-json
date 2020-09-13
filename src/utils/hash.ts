@@ -30,14 +30,14 @@ export function hash(obj: any, hashVal = 0): number {
 }
 
 function numberHash(val: number, initialHashVal: number): number {
-  return (((initialHashVal << 5) - initialHashVal) + val) | 0;  // hashVal * 31 + ch, keep as int32
+  return (((initialHashVal << 5) - initialHashVal) + val) | 0
 }
 
 function booleanHash(b: boolean, initialHashVal: number): number {
   return numberHash(b ? 433 : 863, initialHashVal)
 }
 
-function stringHash(s: string, hashVal: number) {
+function stringHash(s: string, hashVal: number): number {
   hashVal = numberHash(149417, hashVal)
   for (let i = 0, length = s.length; i < length; i++) {
     hashVal = numberHash(s.charCodeAt(i), hashVal)
@@ -57,4 +57,3 @@ function objectHash(obj: any, initialHashVal: number): number {
     return hash(obj[key], hashVal)
   }, initialHashVal)
 }
-

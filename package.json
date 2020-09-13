@@ -9,7 +9,7 @@
     "json"
   ],
   "engines": {
-    "coc": ">= 0.0.70"
+    "coc": ">= 0.0.79"
   },
   "scripts": {
     "clean": "rimraf lib",
@@ -52,6 +52,19 @@
           "default": true,
           "description": "Enable format for json server"
         },
+        "json.maxItemsComputed": {
+          "type": "number",
+          "default": 5000,
+          "description": "The maximum number of outline symbols and folding regions computed (limited for performance reasons)."
+        },
+        "json.schemaDownload.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, JSON schemas can be fetched from http and https locations.",
+          "tags": [
+            "usesOnlineServices"
+          ]
+        },
         "json.schemas": {
           "type": "array",
           "scope": "resource",
@@ -93,19 +106,18 @@
   "license": "MIT",
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
-    "@chemzqm/tslint-config": "^1.0.18",
-    "@types/node": "^11.13.10",
-    "coc.nvim": "^0.0.70",
-    "request-light": "^0.2.4",
-    "rimraf": "^2.6.3",
-    "ts-loader": "^6.0.3",
-    "tslint": "^5.16.0",
-    "typescript": "^3",
-    "vscode-json-languageservice": "3.3.0",
-    "vscode-languageserver": "5.3.0-next.7",
-    "vscode-uri": "2.0.1",
-    "webpack": "^4.34.0",
-    "webpack-cli": "^3.3.4"
+    "@types/node": "^14.10.1",
+    "coc.nvim": "^0.0.79",
+    "request-light": "^0.4.0",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^8.0.3",
+    "typescript": "^4.0.2",
+    "vscode-languageserver-protocol": "^3.15.3",
+    "vscode-json-languageservice": "^3.8.3",
+    "vscode-languageserver": "7.0.0-next.3",
+    "vscode-uri": "^2.1.2",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {}
 }

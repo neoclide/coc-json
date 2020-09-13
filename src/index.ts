@@ -1,12 +1,27 @@
 import path from 'path'
 import fs from 'fs'
-import { DidChangeConfigurationNotification, TextDocument, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType } from 'vscode-languageserver-protocol'
+import { promisify } from 'util'
+import { DidChangeConfigurationNotification, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType, NotificationType, ResponseError } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
 import { hash } from './utils/hash'
-import { Uri, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ServiceStat, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+import { URI } from 'vscode-uri'
+import { fetch, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+import { joinPath, RequestService } from './requests'
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
+}
+
+namespace VSCodeContentRequest {
+  export const type: RequestType<string, string, any, any> = new RequestType('vscode/content')
+}
+
+namespace SchemaContentChangeNotification {
+  export const type: NotificationType<string, any> = new NotificationType('json/schemaContent')
+}
+
+namespace SchemaAssociationNotification {
+  export const type: NotificationType<ISchemaAssociations | ISchemaAssociation[], any> = new NotificationType('json/schemaAssociations')
 }
 
 type ProviderResult<T> =
@@ -19,10 +34,21 @@ interface ISchemaAssociations {
   [pattern: string]: string[]
 }
 
+export interface ISchemaAssociation {
+  fileMatch: string[]
+  uri: string
+}
+
+namespace SettingIds {
+  export const enableFormatter = 'json.format.enable'
+  export const enableSchemaDownload = 'json.schemaDownload.enable'
+  export const maxItemsComputed = 'json.maxItemsComputed'
+}
+
 interface Settings {
   json?: {
     schemas?: JSONSchemaSettings[]
-    format?: { enable: boolean; }
+    format?: { enable: boolean }
   }
   http?: {
     proxy?: string
@@ -38,13 +64,13 @@ interface JSONSchemaSettings {
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions, logger } = context
+  const httpService = getHTTPRequestService()
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
   const file = context.asAbsolutePath('lib/server.js')
   const selector = ['json', 'jsonc']
-  let schemaContent = await readFile(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
-  let settingsSchema = JSON.parse(schemaContent)
   let fileSchemaErrors = new Map<string, string>()
+
   events.on('BufEnter', bufnr => {
     let doc = workspace.getDocument(bufnr)
     if (!doc) return
@@ -67,11 +93,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
       configurationSection: ['json', 'http'],
       fileEvents: workspace.createFileSystemWatcher('**/*.json')
     },
+    initializationOptions: {
+      handledSchemaProtocols: ['file'], // language server only loads file-URI. Fetching schemas with other protocols ('http'...) are made on the client.
+      customCapabilities: { rangeFormatting: { editLimit: 1000 } }
+    },
     outputChannelName: 'json',
     diagnosticCollectionName: 'json',
     middleware: {
       workspace: {
-        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
+        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type as any, { settings: getSettings() })
       },
       handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
         const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
@@ -80,7 +110,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
         if (schemaErrorIndex === -1) {
           fileSchemaErrors.delete(uri.toString())
-          return next(uri, diagnostics)
+          return next(uri, diagnostics as any)
         }
         const schemaResolveDiagnostic = diagnostics[schemaErrorIndex]
         fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
@@ -88,7 +118,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (doc && doc.uri == uri) {
           workspace.showMessage(`Schema error: ${schemaResolveDiagnostic.message}`, 'warning')
         }
-        next(uri, diagnostics)
+        next(uri, diagnostics as any)
       },
       resolveCompletionItem: (
         item: CompletionItem,
@@ -103,7 +133,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
       // fix completeItem
       provideCompletionItem: (
-        document: TextDocument,
+        document,
         position: Position,
         context: CompletionContext,
         token: CancellationToken,
@@ -149,55 +179,38 @@ export async function activate(context: ExtensionContext): Promise<void> {
   )
 
   client.onReady().then(() => {
-    for (let doc of workspace.documents) {
-      onDocumentCreate(doc.textDocument).catch(_e => {
-        // noop
-      })
-    }
-    let associations: ISchemaAssociations = {}
-    for (let item of catalog.schemas) {
-      let { fileMatch, url } = item
-      if (Array.isArray(fileMatch)) {
-        for (let key of fileMatch) {
-          associations[key] = [url]
-        }
-      } else if (typeof fileMatch === 'string') {
-        associations[fileMatch] = [url]
-      }
-    }
-    extensions.all.forEach(extension => {
-      let { packageJSON } = extension
-      let { contributes } = packageJSON
-      if (!contributes) return
-      let { jsonValidation } = contributes
-      if (jsonValidation && jsonValidation.length) {
-        for (let item of jsonValidation) {
-          let { url, fileMatch } = item
-          // fileMatch
-          if (url && !/^http(s)?:/.test(url)) {
-            let file = path.join(extension.extensionPath, url)
-            if (fs.existsSync(file)) url = Uri.file(file).toString()
-          }
-          if (url) {
-            let curr = associations[fileMatch]
-            if (!curr) {
-              associations[fileMatch] = [url]
-            } else if (curr && curr.indexOf(url) == -1) {
-              curr.push(url)
-            }
-          }
-        }
-      }
-    })
+    // associations
+    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+    extensions.onDidUnloadExtension(() => {
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+    }, null, subscriptions)
+    extensions.onDidLoadExtension(() => {
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+    }, null, subscriptions)
 
-    associations['coc-settings.json'] = ['vscode://settings']
-    client.sendNotification('json/schemaAssociations', associations)
+    let schemaDownloadEnabled = true
+    function updateSchemaDownloadSetting(): void {
+      schemaDownloadEnabled = workspace.getConfiguration().get(SettingIds.enableSchemaDownload) !== false
+    }
+    updateSchemaDownloadSetting()
+    workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration(SettingIds.enableSchemaDownload)) {
+        updateSchemaDownloadSetting()
+      }
+    }, null, subscriptions)
 
-    client.onRequest('vscode/content', async uri => {
-      if (uri == 'vscode://settings') {
+    const schemaDocuments: { [uri: string]: boolean } = {}
+    client.onRequest(VSCodeContentRequest.type, async uriPath => {
+      const uri = URI.parse(uriPath)
+      if (uri.scheme === 'untitled') {
+        return Promise.reject(new ResponseError(3, `Unable to load ${uri.scheme}`))
+      }
+      if (uriPath == 'vscode://settings') {
+        let schemaContent = await promisify(fs.readFile)(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
+        let settingsSchema = JSON.parse(schemaContent)
         let schema: any = Object.assign({}, settingsSchema)
         schema.properties = schema.properties || {}
-        if ((extensions as any).schemes) Object.assign(schema.properties, (extensions as any).schemes)
+        if (extensions.schemes) Object.assign(schema.properties, extensions.schemes)
         extensions.all.forEach(extension => {
           let { packageJSON } = extension
           let { contributes } = packageJSON
@@ -211,40 +224,35 @@ export async function activate(context: ExtensionContext): Promise<void> {
         })
         return JSON.stringify(schema)
       }
-      logger.error(`Unknown schema for ${uri}`)
+      if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+        let doc = await workspace.loadFile(uriPath)
+        schemaDocuments[uri.toString()] = true
+        return doc.getDocumentContent()
+      } else if (schemaDownloadEnabled) {
+        return httpService.getContent(uriPath)
+      } else {
+        logger.warn(`Schema download disabled!`)
+      }
       return '{}'
     })
+    const handleContentChange = (uriString: string) => {
+      if (schemaDocuments[uriString]) {
+        client.sendNotification(SchemaContentChangeNotification.type, uriString)
+        return true
+      }
+      return false
+    }
+    workspace.onDidChangeTextDocument(e => handleContentChange(e.textDocument.uri))
+    workspace.onDidCloseTextDocument(doc => {
+      const uriString = doc.uri
+      if (handleContentChange(uriString)) {
+        delete schemaDocuments[uriString]
+      }
+      fileSchemaErrors.delete(doc.uri)
+    }, null, subscriptions)
   }, _e => {
     // noop
   })
-
-  async function onDocumentCreate(document: TextDocument): Promise<void> {
-    if (!workspace.match(selector, document)) return
-    if (client.serviceState !== ServiceStat.Running) return
-    let file = Uri.parse(document.uri).fsPath
-    let associations: ISchemaAssociations = {}
-    let content = document.getText()
-    if (content.indexOf('"$schema"') !== -1) return
-    let miniProgrameRoot = await workspace.resolveRootFolder(Uri.parse(document.uri), ['project.config.json'])
-    if (miniProgrameRoot) {
-      if (path.dirname(file) == miniProgrameRoot) {
-        return
-      }
-      let arr = ['page', 'component'].map(str => {
-        return Uri.file(context.asAbsolutePath(`data/${str}.json`)).toString()
-      })
-      associations['/' + file] = arr
-      associations['app.json'] = [Uri.file(context.asAbsolutePath('data/app.json')).toString()]
-    }
-    if (Object.keys(associations).length > 0) {
-      client.sendNotification('json/schemaAssociations', associations)
-    }
-
-  }
-  workspace.onDidOpenTextDocument(onDocumentCreate, null, subscriptions)
-  workspace.onDidCloseTextDocument(doc => {
-    fileSchemaErrors.delete(doc.uri)
-  }, null, subscriptions)
 
   let statusItem = workspace.createStatusBarItem(0, { progress: true })
   subscriptions.push(statusItem)
@@ -254,7 +262,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     statusItem.isProgress = true
     statusItem.text = 'loading schema'
     statusItem.show()
-    client.sendRequest(ForceValidateRequest.type, doc.uri).then(diagnostics => {
+    client.sendRequest(ForceValidateRequest.type as any, doc.uri).then((diagnostics: Diagnostic[]) => {
       statusItem.text = '⚠️'
       statusItem.isProgress = false
       const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
@@ -337,16 +345,66 @@ function getSchemaId(schema: JSONSchemaSettings, rootPath?: string): string {
       url = schema.schema.id || `vscode://schemas/custom/${encodeURIComponent(hash(schema.schema).toString(16))}`
     }
   } else if (rootPath && (url[0] === '.' || url[0] === '/')) {
-    url = Uri.file(path.normalize(path.join(rootPath, url))).toString()
+    url = URI.file(path.normalize(path.join(rootPath, url))).toString()
   }
   return url
 }
 
-function readFile(fullpath: string, encoding: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    fs.readFile(fullpath, encoding, (err, content) => {
-      if (err) reject(err)
-      resolve(content)
-    })
+function getHTTPRequestService(): RequestService {
+  return {
+    getContent(uri: string, _encoding?: string): Promise<string> {
+      const headers = { 'Accept-Encoding': 'gzip, deflate' }
+      return fetch(uri, { headers }).then(res => {
+        if (typeof res === 'string') {
+          return res
+        }
+        return JSON.stringify(res)
+      })
+    }
+  }
+}
+
+function getSchemaAssociations(_context: ExtensionContext): ISchemaAssociation[] {
+  const associations: ISchemaAssociation[] = []
+  associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
+  for (let item of catalog.schemas) {
+    let { fileMatch, url } = item
+    if (Array.isArray(fileMatch)) {
+      associations.push({ fileMatch, uri: url })
+    } else if (typeof fileMatch === 'string') {
+      associations.push({ fileMatch: [fileMatch], uri: url })
+    }
+  }
+  extensions.all.forEach(extension => {
+    const packageJSON = extension.packageJSON
+    if (packageJSON && packageJSON.contributes && packageJSON.contributes.jsonValidation) {
+      const jsonValidation = packageJSON.contributes.jsonValidation
+      if (Array.isArray(jsonValidation)) {
+        jsonValidation.forEach(jv => {
+          let { fileMatch, url } = jv
+          if (typeof fileMatch === 'string') {
+            fileMatch = [fileMatch]
+          }
+          if (Array.isArray(fileMatch) && typeof url === 'string') {
+            let uri: string = url
+            if (uri[0] === '.' && uri[1] === '/') {
+              uri = joinPath(URI.file(extension.extensionPath), uri).toString()
+            }
+            fileMatch = fileMatch.map(fm => {
+              if (fm[0] === '%') {
+                fm = fm.replace(/%APP_SETTINGS_HOME%/, '/User')
+                fm = fm.replace(/%MACHINE_SETTINGS_HOME%/, '/Machine')
+                fm = fm.replace(/%APP_WORKSPACES_HOME%/, '/Workspaces')
+              } else if (!fm.match(/^(\w+:\/\/|\/|!)/)) {
+                fm = '/' + fm
+              }
+              return fm
+            })
+            associations.push({ fileMatch, uri })
+          }
+        })
+      }
+    }
   })
+  return associations
 }
