@@ -7,6 +7,7 @@ import { hash } from './utils/hash'
 import { URI } from 'vscode-uri'
 import { fetch, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
 import { joinPath, RequestService } from './requests'
+import stripBom from 'strip-bom'
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
@@ -229,7 +230,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         schemaDocuments[uri.toString()] = true
         return doc.getDocumentContent()
       } else if (schemaDownloadEnabled) {
-        return httpService.getContent(uriPath)
+        return await Promise.resolve(httpService.getContent(uriPath))
       } else {
         logger.warn(`Schema download disabled!`)
       }
@@ -357,6 +358,9 @@ function getHTTPRequestService(): RequestService {
       return fetch(uri, { headers }).then(res => {
         if (typeof res === 'string') {
           return res
+        }
+        if (Buffer.isBuffer(res)) {
+          return stripBom(res.toString('utf8'))
         }
         return JSON.stringify(res)
       })
