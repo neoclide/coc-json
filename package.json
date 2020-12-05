@@ -98,6 +98,11 @@
               }
             }
           }
+        },
+        "json.truncateMessage": {
+          "type": "boolean",
+          "default": false,
+          "description": "Truncate message avoid hit-enter"
         }
       }
     }

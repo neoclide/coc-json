@@ -5,7 +5,7 @@ import { DidChangeConfigurationNotification, Position, CompletionContext, Cancel
 import catalog from './catalog.json'
 import { hash } from './utils/hash'
 import { URI } from 'vscode-uri'
-import { fetch, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+import { fetch, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature, MsgTypes } from 'coc.nvim'
 import { joinPath, RequestService } from './requests'
 import stripBom from 'strip-bom'
 
@@ -76,7 +76,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let doc = workspace.getDocument(bufnr)
     if (!doc) return
     let msg = fileSchemaErrors.get(doc.uri)
-    if (msg) workspace.showMessage(`Schema error: ${msg}`, 'warning')
+    if (msg) showMessage(`Schema error: ${msg}`, 'warning')
   }, null, subscriptions)
 
   let serverOptions: ServerOptions = {
@@ -117,7 +117,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
         let doc = workspace.getDocument(uri)
         if (doc && doc.uri == uri) {
-          workspace.showMessage(`Schema error: ${schemaResolveDiagnostic.message}`, 'warning')
+          showMessage(`Schema error: ${schemaResolveDiagnostic.message}`, 'warning')
         }
         next(uri, diagnostics as any)
       },
@@ -411,4 +411,20 @@ function getSchemaAssociations(_context: ExtensionContext): ISchemaAssociation[]
     }
   })
   return associations
+}
+
+async function showMessage(msg: string, type?: MsgTypes) {
+  const isTruncMsg = workspace.getConfiguration('json').get('truncateMessage', false)
+  if (!isTruncMsg) {
+    return workspace.showMessage(msg, type)
+  }
+  // message prefix `[coc.nvim] `
+  const msgPrefixLen = 11
+  const maxWidth = (await workspace.nvim.getOption('columns') as number) - 1 /* for less than columns */
+  const displayWidth = await workspace.nvim.call('strdisplaywidth', [msg]) + msgPrefixLen
+  if (displayWidth > maxWidth) {
+    const halfLen = Math.floor((maxWidth - 3 /*string `...` length*/ - msgPrefixLen) / 2)
+    msg = `${msg.slice(0, halfLen)}...${msg.slice(-halfLen)}`
+  }
+  workspace.showMessage(msg, type)
 }
