@@ -76,7 +76,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let doc = workspace.getDocument(bufnr)
     if (!doc) return
     let msg = fileSchemaErrors.get(doc.uri)
-    if (msg) workspace.showMessage(`Schema error: ${msg}`, 'warning')
+    if (msg) client.outputChannel.appendLine(`Schema error: ${msg}`)
   }, null, subscriptions)
 
   let serverOptions: ServerOptions = {
@@ -117,7 +117,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
         let doc = workspace.getDocument(uri)
         if (doc && doc.uri == uri) {
-          workspace.showMessage(`Schema error: ${schemaResolveDiagnostic.message}`, 'warning')
+          client.outputChannel.appendLine(`Schema error: ${schemaResolveDiagnostic.message}`)
         }
         next(uri, diagnostics as any)
       },
