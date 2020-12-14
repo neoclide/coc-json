@@ -5,7 +5,7 @@ import { DidChangeConfigurationNotification, Position, CompletionContext, Cancel
 import catalog from './catalog.json'
 import { hash } from './utils/hash'
 import { URI } from 'vscode-uri'
-import { fetch, commands, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
+import { fetch, commands, window, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
 import { joinPath, RequestService } from './requests'
 import stripBom from 'strip-bom'
 
@@ -102,7 +102,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     diagnosticCollectionName: 'json',
     middleware: {
       workspace: {
-        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type as any, { settings: getSettings() })
+        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
       },
       handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
         const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
@@ -111,7 +111,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
         if (schemaErrorIndex === -1) {
           fileSchemaErrors.delete(uri.toString())
-          return next(uri, diagnostics as any)
+          return next(uri, diagnostics)
         }
         const schemaResolveDiagnostic = diagnostics[schemaErrorIndex]
         fileSchemaErrors.set(uri.toString(), schemaResolveDiagnostic.message)
@@ -119,7 +119,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (doc && doc.uri == uri) {
           client.outputChannel.appendLine(`Schema error: ${schemaResolveDiagnostic.message}`)
         }
-        next(uri, diagnostics as any)
+        next(uri, diagnostics)
       },
       resolveCompletionItem: (
         item: CompletionItem,
@@ -211,7 +211,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         let settingsSchema = JSON.parse(schemaContent)
         let schema: any = Object.assign({}, settingsSchema)
         schema.properties = schema.properties || {}
-        if (extensions.schemes) Object.assign(schema.properties, extensions.schemes)
+        let schemes = extensions['schemes']
+        if (schemes) Object.assign(schema.properties, schemes)
         extensions.all.forEach(extension => {
           let { packageJSON } = extension
           let { contributes } = packageJSON
@@ -255,7 +256,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // noop
   })
 
-  let statusItem = workspace.createStatusBarItem(0, { progress: true })
+  let statusItem = window.createStatusBarItem(0, { progress: true })
   subscriptions.push(statusItem)
   subscriptions.push(commands.registerCommand('json.retryResolveSchema', async () => {
     let doc = await workspace.document
@@ -263,7 +264,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     statusItem.isProgress = true
     statusItem.text = 'loading schema'
     statusItem.show()
-    client.sendRequest(ForceValidateRequest.type as any, doc.uri).then((diagnostics: Diagnostic[]) => {
+    client.sendRequest(ForceValidateRequest.type, doc.uri).then((diagnostics: Diagnostic[]) => {
       statusItem.text = '⚠️'
       statusItem.isProgress = false
       const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
