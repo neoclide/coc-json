@@ -1029,6 +1029,12 @@
       "url": "https://json.schemastore.org/package"
     },
     {
+      "name": "coc extension package.json",
+      "description": "coc extension contributes",
+      "fileMatch": ["package.json"],
+      "url": "vscode://schemas/vscode-extensions"
+    },
+    {
       "name": "package.manifest",
       "description": "Umbraco package configuration file",
       "fileMatch": ["package.manifest"],
