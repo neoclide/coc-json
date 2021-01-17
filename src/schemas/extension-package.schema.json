@@ -1,6 +1,91 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
+  "definitions": {
+    "configurationEntry": {
+      "defaultSnippets": [
+        {
+          "body": {
+            "title": "${1}",
+            "properties": {}
+          }
+        }
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "A summary of the settings."
+        },
+        "properties": {
+          "description": "Description of the configuration properties.",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "\\S+",
+            "patternErrorMessage": "Property should not be empty."
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "http://json-schema.org/draft-07/schema#"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "scope": {
+                    "type": "string",
+                    "enum": [
+                      "application",
+                      "machine",
+                      "window",
+                      "resource",
+                      "language-overridable",
+                      "machine-overridable"
+                    ],
+                    "default": "window",
+                    "enumDescriptions": [
+                      "Configuration that can be configured only in the user settings.",
+                      "Configuration that can be configured only in the user settings or only in the remote settings.",
+                      "Configuration that can be configured in the user, remote or workspace settings.",
+                      "Configuration that can be configured in the user, remote, workspace or folder settings.",
+                      "Resource configuration that can be configured in language specific settings.",
+                      "Machine configuration that can be configured also in workspace or folder settings."
+                    ],
+                    "description": "Scope in which the configuration is applicable. Available scopes are `application`, `machine`, `window`, `resource`, and `machine-overridable`."
+                  },
+                  "enumDescriptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Descriptions for enum values"
+                  },
+                  "markdownEnumDescriptions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Descriptions for enum values in the markdown format."
+                  },
+                  "markdownDescription": {
+                    "type": "string",
+                    "description": "The description in the markdown format."
+                  },
+                  "deprecationMessage": {
+                    "type": "string",
+                    "description": "If set, the property is marked as deprecated and the given message is shown as an explanation."
+                  },
+                  "markdownDeprecationMessage": {
+                    "type": "string",
+                    "description": "If set, the property is marked as deprecated and the given message is shown as an explanation in the markdown format."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
   "properties": {
     "engines": {
       "type": "object",
@@ -8,8 +93,12 @@
         "coc": {
           "type": "string",
           "defaultSnippets": [
-            { "body": "^${1:version}" },
-            { "body": ">=${1:version}" }
+            {
+              "body": "^${1:version}"
+            },
+            {
+              "body": ">=${1:version}"
+            }
           ]
         }
       }
@@ -19,13 +108,27 @@
       "items": {
         "type": "string",
         "defaultSnippets": [
-          { "body": "onLanguage:${1:language}" },
-          { "body": "*" }
+          {
+            "body": "onLanguage:${1:language}"
+          },
+          {
+            "body": "onCommand:${1:command}"
+          },
+          {
+            "body": "workspaceContains${1:filepath}"
+          },
+          {
+            "body": "onFileSystem${1:scheme}"
+          },
+          {
+            "body": "*"
+          }
         ]
       }
     },
     "contributes": {
       "type": "object",
+      "description": "Extension contributes definitions, including commands, configuration and jsonValidation.",
       "properties": {
         "commands": {
           "type": "array",
@@ -33,7 +136,12 @@
           "items": {
             "type": "object",
             "defaultSnippets": [
-              { "body": { "title": "${1:Title}", "command": "${2:command}" } }
+              {
+                "body": {
+                  "title": "${1:Title}",
+                  "command": "${2:command}"
+                }
+              }
             ],
             "properties": {
               "title": {
@@ -49,22 +157,16 @@
         },
         "configuration": {
           "type": "object",
-          "defaultSnippets": [
-            { "body": { "title": "${1:Title}", "properties": {} } }
-          ],
-          "description": "Extension settings.",
-          "allOf": [
+          "description": "Contributes configuration settings.",
+          "oneOf": [
             {
-              "type": "object",
-              "properties": {
-                "title": {
-                  "description": "A summary of the settings.",
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/configurationEntry"
             },
             {
-              "$ref": "http://json-schema.org/draft-07/schema#"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/configurationEntry"
+              }
             }
           ]
         },
@@ -74,19 +176,36 @@
             "description": "Contributes json schema configuration.",
             "type": "array",
             "defaultSnippets": [
-              { "body": [{ "fileMatch": "${1:file.json}", "url": "${2:url}" }] }
+              {
+                "body": [
+                  {
+                    "fileMatch": "${1:file.json}",
+                    "url": "${2:url}"
+                  }
+                ]
+              }
             ],
             "items": {
               "type": "object",
               "defaultSnippets": [
-                { "body": { "fileMatch": "${1:file.json}", "url": "${2:url}" } }
+                {
+                  "body": {
+                    "fileMatch": "${1:file.json}",
+                    "url": "${2:url}"
+                  }
+                }
               ],
               "properties": {
                 "fileMatch": {
-                  "type": ["string", "array"],
+                  "type": [
+                    "string",
+                    "array"
+                  ],
                   "description": "The file pattern (or an array of patterns) to match, for example 'package.json' or '*.launch'. Exclusion patterns start with '!'",
                   "items": {
-                    "type": ["string"]
+                    "type": [
+                      "string"
+                    ]
                   }
                 },
                 "url": {
