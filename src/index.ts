@@ -1,14 +1,14 @@
-import path from 'path'
+import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, fetch, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, NotificationType, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
+import path from 'path'
+import stripBom from 'strip-bom'
 import { promisify } from 'util'
-import { DidChangeConfigurationNotification, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType, NotificationType, ResponseError } from 'vscode-languageserver-protocol'
+import { CancellationToken, Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
+import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
+import { joinPath, RequestService } from './requests'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
-import { URI } from 'vscode-uri'
-import { fetch, commands, window, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
-import { joinPath, RequestService } from './requests'
-import stripBom from 'strip-bom'
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
@@ -103,7 +103,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     diagnosticCollectionName: 'json',
     middleware: {
       workspace: {
-        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type, { settings: getSettings() })
+        didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type as any, { settings: getSettings() })
       },
       handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
         const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
