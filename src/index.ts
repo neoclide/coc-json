@@ -3,6 +3,7 @@ import fs from 'fs'
 import { promisify } from 'util'
 import { DidChangeConfigurationNotification, Position, CompletionContext, CancellationToken, CompletionItem, CompletionList, CompletionItemKind, Diagnostic, RequestType, NotificationType, ResponseError } from 'vscode-languageserver-protocol'
 import catalog from './catalog.json'
+import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 import { URI } from 'vscode-uri'
 import { fetch, commands, window, ExtensionContext, events, extensions, LanguageClient, ServerOptions, workspace, services, TransportKind, LanguageClientOptions, ProvideCompletionItemsSignature, ResolveCompletionItemSignature, HandleDiagnosticsSignature } from 'coc.nvim'
@@ -225,6 +226,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
           }
         })
         return JSON.stringify(schema)
+      }
+      if (uriPath == 'vscode://schemas/vscode-extensions') {
+        return JSON.stringify(extensionPkg)
       }
       if (uri.scheme !== 'http' && uri.scheme !== 'https') {
         let doc = await workspace.loadFile(uriPath)

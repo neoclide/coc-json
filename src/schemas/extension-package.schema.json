@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "engines": {
+      "type": "object",
+      "properties": {
+        "coc": {
+          "type": "string",
+          "defaultSnippets": [
+            { "body": "^${1:version}" },
+            { "body": ">=${1:version}" }
+          ]
+        }
+      }
+    },
+    "activationEvents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "defaultSnippets": [
+          { "body": "onLanguage:${1:language}" },
+          { "body": "*" }
+        ]
+      }
+    },
+    "contributes": {
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "description": "Contributes extension commands.",
+          "items": {
+            "type": "object",
+            "defaultSnippets": [
+              { "body": { "title": "${1:Title}", "command": "${2:command}" } }
+            ],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Command title."
+              },
+              "command": {
+                "type": "string",
+                "description": "Command id."
+              }
+            }
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "defaultSnippets": [
+            { "body": { "title": "${1:Title}", "properties": {} } }
+          ],
+          "description": "Extension settings.",
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "A summary of the settings.",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "$ref": "http://json-schema.org/draft-07/schema#"
+            }
+          ]
+        },
+        "jsonValidation": {
+          "type": "array",
+          "items": {
+            "description": "Contributes json schema configuration.",
+            "type": "array",
+            "defaultSnippets": [
+              { "body": [{ "fileMatch": "${1:file.json}", "url": "${2:url}" }] }
+            ],
+            "items": {
+              "type": "object",
+              "defaultSnippets": [
+                { "body": { "fileMatch": "${1:file.json}", "url": "${2:url}" } }
+              ],
+              "properties": {
+                "fileMatch": {
+                  "type": ["string", "array"],
+                  "description": "The file pattern (or an array of patterns) to match, for example 'package.json' or '*.launch'. Exclusion patterns start with '!'",
+                  "items": {
+                    "type": ["string"]
+                  }
+                },
+                "url": {
+                  "description": "A schema URL ('http:', 'https:') or relative path to the extension folder ('./').",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
