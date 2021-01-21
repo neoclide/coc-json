@@ -130,6 +130,32 @@
       "type": "object",
       "description": "Extension contributes definitions, including commands, configuration and jsonValidation.",
       "properties": {
+        "rootPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "defaultSnippets": [
+              {
+                "body": {
+                  "filetype": "${1:filetype}",
+                  "patterns": []
+                }
+              }
+            ],
+            "properties": {
+              "filetype": {
+                "type": "string"
+              },
+              "patterns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["filetype", "patterns"]
+          }
+        },
         "commands": {
           "type": "array",
           "description": "Contributes extension commands.",
