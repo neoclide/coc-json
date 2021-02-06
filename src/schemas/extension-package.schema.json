@@ -198,46 +198,33 @@
         },
         "jsonValidation": {
           "type": "array",
+          "description": "Contributes json schema configuration.",
           "items": {
-            "description": "Contributes json schema configuration.",
-            "type": "array",
+            "type": "object",
             "defaultSnippets": [
               {
-                "body": [
-                  {
-                    "fileMatch": "${1:file.json}",
-                    "url": "${2:url}"
-                  }
-                ]
+                "body": {
+                  "fileMatch": "${1:file.json}",
+                  "url": "${2:url}"
+                }
               }
             ],
-            "items": {
-              "type": "object",
-              "defaultSnippets": [
-                {
-                  "body": {
-                    "fileMatch": "${1:file.json}",
-                    "url": "${2:url}"
-                  }
-                }
-              ],
-              "properties": {
-                "fileMatch": {
+            "properties": {
+              "fileMatch": {
+                "type": [
+                  "string",
+                  "array"
+                ],
+                "description": "The file pattern (or an array of patterns) to match, for example 'package.json' or '*.launch'. Exclusion patterns start with '!'",
+                "items": {
                   "type": [
-                    "string",
-                    "array"
-                  ],
-                  "description": "The file pattern (or an array of patterns) to match, for example 'package.json' or '*.launch'. Exclusion patterns start with '!'",
-                  "items": {
-                    "type": [
-                      "string"
-                    ]
-                  }
-                },
-                "url": {
-                  "description": "A schema URL ('http:', 'https:') or relative path to the extension folder ('./').",
-                  "type": "string"
+                    "string"
+                  ]
                 }
+              },
+              "url": {
+                "description": "A schema URL ('http:', 'https:') or relative path to the extension folder ('./').",
+                "type": "string"
               }
             }
           }
