@@ -5,6 +5,8 @@ Json language server extension for [coc.nvim](https://github.com/neoclide/coc.nv
 The server code is extracted from VSCode, which uses
 [vscode-json-languageservice](https://www.npmjs.com/package/vscode-json-languageservice)
 
+For highlight of jsonc filetype, you may need [jsonc.vim](https://github.com/neoclide/jsonc.vim)
+
 ## Install
 
 In your vim/neovim, run the following command:
