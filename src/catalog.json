@@ -71,7 +71,7 @@
       "name": "arc.json",
       "description": "A JSON schema for OpenJS Architect",
       "fileMatch": ["arc.json", "arc.yml", "arc.yaml"],
-      "url": "https://raw.githubusercontent.com/architect/parser/master/schema.json"
+      "url": "https://raw.githubusercontent.com/architect/parser/master/arc-schema.json"
     },
     {
       "name": "Avro Avsc",
