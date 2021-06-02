@@ -365,7 +365,7 @@
       "name": "composer.json",
       "description": "PHP Composer configuration file",
       "fileMatch": ["composer.json"],
-      "url": "https://json.schemastore.org/composer"
+      "url": "https://raw.githubusercontent.com/composer/composer/master/res/composer-schema.json"
     },
     {
       "name": "component.json",
