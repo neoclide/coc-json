@@ -1,4 +1,4 @@
-import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, fetch, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, NotificationType, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
+import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, fetch, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, NotificationType, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace, languages } from 'coc.nvim'
 import fs from 'fs'
 import path from 'path'
 import stripBom from 'strip-bom'
@@ -415,5 +415,9 @@ function getSchemaAssociations(_context: ExtensionContext): ISchemaAssociation[]
       }
     }
   })
+  if (typeof languages['registerDocumentSemanticTokensProvider'] === 'undefined') {
+    // coc.nvim before 316 PR merged, to make the server receive single params
+    return [associations] as any
+  }
   return associations
 }
