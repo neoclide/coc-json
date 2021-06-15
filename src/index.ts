@@ -69,7 +69,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const httpService = getHTTPRequestService()
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
-  const file = context.asAbsolutePath('lib/server.js')
+  const file = context.asAbsolutePath(path.join('node_modules', 'vscode-json-languageserver', 'out', 'node', 'jsonServerMain.js'))
   const selector = ['json', 'jsonc']
   let fileSchemaErrors = new Map<string, string>()
 
