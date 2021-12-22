@@ -11,19 +11,19 @@ import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
 namespace ForceValidateRequest {
-  export const type: RequestType<string, Diagnostic[], any, any> = new RequestType('json/validate')
+  export const type: RequestType<string, Diagnostic[], any> = new RequestType('json/validate')
 }
 
 namespace VSCodeContentRequest {
-  export const type: RequestType<string, string, any, any> = new RequestType('vscode/content')
+  export const type: RequestType<string, string, any> = new RequestType('vscode/content')
 }
 
 namespace SchemaContentChangeNotification {
-  export const type: NotificationType<string, any> = new NotificationType('json/schemaContent')
+  export const type: NotificationType<string> = new NotificationType('json/schemaContent')
 }
 
 namespace SchemaAssociationNotification {
-  export const type: NotificationType<ISchemaAssociations | ISchemaAssociation[], any> = new NotificationType('json/schemaAssociations')
+  export const type: NotificationType<ISchemaAssociations | ISchemaAssociation[]> = new NotificationType('json/schemaAssociations')
 }
 
 type ProviderResult<T> =
@@ -69,7 +69,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const httpService = getHTTPRequestService()
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
-  const file = context.asAbsolutePath(path.join('node_modules', 'vscode-json-languageserver', 'out', 'node', 'jsonServerMain.js'))
+  const file = context.asAbsolutePath('./lib/server.js')
   const selector = ['json', 'jsonc']
   let fileSchemaErrors = new Map<string, string>()
 

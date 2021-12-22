@@ -31,7 +31,7 @@ let entryPlugin = {
 
 async function start() {
   await require('esbuild').build({
-    entryPoints: ['src/index.ts'],
+    entryPoints: ['index.ts', 'server.ts'],
     define: {'process.env.NODE_ENV': JSON.stringify("production")},
     bundle: true,
     platform: 'node',
@@ -41,7 +41,7 @@ async function start() {
     sourcemap: true,
     external: ['coc.nvim'],
     outdir: path.resolve(__dirname, 'lib'),
-    // plugins: [entryPlugin]
+    plugins: [entryPlugin]
   })
 }
 
