@@ -104,7 +104,7 @@
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
     "@types/node": "^10.12.0",
-    "coc.nvim": "^0.0.80",
+    "coc.nvim": "^0.0.81-next.8",
     "esbuild": "^0.8.29",
     "request-light": "^0.4.0",
     "rimraf": "^3.0.2",
