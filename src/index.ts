@@ -376,6 +376,7 @@ function getHTTPRequestService(): RequestService {
 function getSchemaAssociations(_context: ExtensionContext): ISchemaAssociation[] {
   const associations: ISchemaAssociation[] = []
   associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
+  associations.push({ fileMatch: ['package.json'], uri: 'vscode://schemas/vscode-extensions' })
   for (let item of catalog.schemas) {
     let { fileMatch, url } = item
     if (Array.isArray(fileMatch)) {
