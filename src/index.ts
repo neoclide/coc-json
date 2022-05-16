@@ -141,7 +141,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         token: CancellationToken,
         next: ProvideCompletionItemsSignature
       ): ProviderResult<CompletionItem[] | CompletionList> => {
-        return Promise.resolve(next(document, position, context, token)).then((res: CompletionItem[] | CompletionList) => {
+        return Promise.resolve(next(document, position, context, token)).then((res: CompletionItem[] | CompletionList = []) => {
           let doc = workspace.getDocument(document.uri)
           if (!doc) return []
           let items: CompletionItem[] = res.hasOwnProperty('isIncomplete') ? (res as CompletionList).items : res as CompletionItem[]
