@@ -70,6 +70,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
   const file = context.asAbsolutePath('./lib/server.js')
+  const enableDefaultSchemas = config.enableDefaultSchemas
   const selector = ['json', 'jsonc']
   let fileSchemaErrors = new Map<string, string>()
 
@@ -182,12 +183,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   client.onReady().then(() => {
     // associations
-    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
     extensions.onDidUnloadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
     }, null, subscriptions)
     extensions.onDidLoadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(context))
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
     }, null, subscriptions)
 
     let schemaDownloadEnabled = true
@@ -373,16 +374,18 @@ function getHTTPRequestService(): RequestService {
   }
 }
 
-function getSchemaAssociations(_context: ExtensionContext): ISchemaAssociation[] {
+function getSchemaAssociations(enableDefaultSchemas: boolean): ISchemaAssociation[] {
   const associations: ISchemaAssociation[] = []
   associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
   associations.push({ fileMatch: ['package.json'], uri: 'vscode://schemas/vscode-extensions' })
-  for (let item of catalog.schemas) {
-    let { fileMatch, url } = item
-    if (Array.isArray(fileMatch)) {
-      associations.push({ fileMatch, uri: url })
-    } else if (typeof fileMatch === 'string') {
-      associations.push({ fileMatch: [fileMatch], uri: url })
+  if (enableDefaultSchemas) {
+    for (let item of catalog.schemas) {
+      let { fileMatch, url } = item
+      if (Array.isArray(fileMatch)) {
+        associations.push({ fileMatch, uri: url })
+      } else if (typeof fileMatch === 'string') {
+        associations.push({ fileMatch: [fileMatch], uri: url })
+      }
     }
   }
   extensions.all.forEach(extension => {

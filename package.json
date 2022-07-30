@@ -28,6 +28,11 @@
           "default": true,
           "description": "Enable json server"
         },
+        "json.enableDefaultSchemas": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable builtin schemas from https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/api/json/catalog.json"
+        },
         "json.trace.server": {
           "type": "string",
           "default": "off",

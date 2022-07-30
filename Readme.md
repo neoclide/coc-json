@@ -37,6 +37,8 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 ## Configuration options
 
 - `json.enable` set to `false` to disable json language server.
+- `json.enableDefaultSchemas` set to `false` to disable schemas from
+  [SchemaStore]()
 - `json.trace.server` trace LSP traffic in output channel.
 - `json.execArgv` add `execArgv` to `child_process.fork` used for start
   json language server.
