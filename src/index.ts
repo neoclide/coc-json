@@ -190,12 +190,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   client.onReady().then(() => {
     // associations
-    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
+    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
     extensions.onDidUnloadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
     }, null, subscriptions)
     extensions.onDidLoadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations(enableDefaultSchemas))
+      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
     }, null, subscriptions)
 
     let schemaDownloadEnabled = true
@@ -301,6 +301,7 @@ function getSettings(): Settings {
   resultLimit = Math.trunc(Math.max(0, Number(workspace.getConfiguration().get(SettingIds.maxItemsComputed)))) || 5000
 
   let httpSettings = workspace.getConfiguration('http')
+  let enableDefaultSchemas = configuration.get('json.enableDefaultSchemas')
   let settings: Settings = {
     http: {
       proxy: httpSettings.get('proxy'),
@@ -315,9 +316,17 @@ function getSettings(): Settings {
     }
   }
   let schemaSettingsById: { [schemaId: string]: JSONSchemaSettings } = Object.create(null)
-  let collectSchemaSettings = (schemaSettings: JSONSchemaSettings[], rootPath?: string, fileMatchPrefix?: string) => {
-    for (let setting of schemaSettings) {
-      let url = getSchemaId(setting, rootPath)
+  let allFileMatches: string[] = []
+  let collectSchemaSettings = (schemaSettings: JSONSchemaSettings[], folderUri?: URI, isMultiRoot?: boolean) => {
+    let fileMatchPrefix = undefined
+    if (folderUri && isMultiRoot) {
+      fileMatchPrefix = folderUri.toString()
+      if (fileMatchPrefix[fileMatchPrefix.length - 1] === '/') {
+        fileMatchPrefix = fileMatchPrefix.substr(0, fileMatchPrefix.length - 1)
+      }
+    }
+    for (const setting of schemaSettings) {
+      const url = getSchemaId(setting, folderUri)
       if (!url) {
         continue
       }
@@ -326,46 +335,83 @@ function getSettings(): Settings {
         schemaSetting = schemaSettingsById[url] = { url, fileMatch: [] }
         settings.json!.schemas!.push(schemaSetting)
       }
-      let fileMatches = setting.fileMatch
-      let resultingFileMatches = schemaSetting.fileMatch!
+      const fileMatches = setting.fileMatch
       if (Array.isArray(fileMatches)) {
-        if (fileMatchPrefix) {
-          for (let fileMatch of fileMatches) {
-            if (fileMatch[0] === '/') {
-              resultingFileMatches.push(fileMatchPrefix + fileMatch)
-              resultingFileMatches.push(fileMatchPrefix + '/*' + fileMatch)
-            } else {
-              resultingFileMatches.push(fileMatchPrefix + '/' + fileMatch)
-              resultingFileMatches.push(fileMatchPrefix + '/*/' + fileMatch)
-            }
+        const resultingFileMatches = schemaSetting.fileMatch || []
+        schemaSetting.fileMatch = resultingFileMatches
+        const addMatch = (pattern: string) => { //  filter duplicates
+          if (resultingFileMatches.indexOf(pattern) === -1) {
+            resultingFileMatches.push(pattern)
           }
-        } else {
-          resultingFileMatches.push(...fileMatches)
         }
-
+        for (const fileMatch of fileMatches) {
+          if (fileMatchPrefix) {
+            if (fileMatch[0] === '/') {
+              addMatch(fileMatchPrefix + fileMatch)
+              addMatch(fileMatchPrefix + '/*' + fileMatch)
+            } else {
+              addMatch(fileMatchPrefix + '/' + fileMatch)
+              addMatch(fileMatchPrefix + '/*/' + fileMatch)
+            }
+          } else {
+            addMatch(fileMatch)
+          }
+        }
       }
-      if (setting.schema) {
+      if (setting.schema && !schemaSetting.schema) {
         schemaSetting.schema = setting.schema
       }
     }
   }
 
+  const folders = workspace.workspaceFolders
   // merge global and folder settings. Qualify all file matches with the folder path.
   let globalSettings = workspace.getConfiguration('json', null).get<JSONSchemaSettings[]>('schemas')
   if (Array.isArray(globalSettings)) {
-    collectSchemaSettings(globalSettings, workspace.root)
+    if (!folders || folders.length == 0) collectSchemaSettings(globalSettings)
+  }
+
+  if (folders) {
+    const isMultiRoot = folders.length > 1
+    for (const folder of folders) {
+      const folderUri = folder.uri
+      const schemaConfigInfo = workspace.getConfiguration('json', folderUri).inspect<JSONSchemaSettings[]>('schemas')
+      const folderSchemas = schemaConfigInfo!.workspaceValue
+      if (Array.isArray(folderSchemas)) {
+        collectSchemaSettings(folderSchemas, URI.parse(folderUri), isMultiRoot)
+      }
+      if (Array.isArray(globalSettings)) {
+        collectSchemaSettings(globalSettings, URI.parse(folderUri), isMultiRoot)
+      }
+
+    }
+  }
+
+  if (enableDefaultSchemas) {
+    for (let item of catalog.schemas) {
+      let { fileMatch, url } = item
+      if (Array.isArray(fileMatch)) {
+        if (allFileMatches.some(s => !fileMatch.includes(s))) {
+          settings.json!.schemas!.push({ fileMatch, url })
+        }
+      } else if (typeof fileMatch === 'string') {
+        if (!allFileMatches.includes(fileMatch)) {
+          settings.json!.schemas!.push({ fileMatch: [fileMatch], url })
+        }
+      }
+    }
   }
   return settings
 }
 
-function getSchemaId(schema: JSONSchemaSettings, rootPath?: string): string {
+function getSchemaId(schema: JSONSchemaSettings, folderUri?: URI): string | undefined {
   let url = schema.url
   if (!url) {
     if (schema.schema) {
       url = schema.schema.id || `vscode://schemas/custom/${encodeURIComponent(hash(schema.schema).toString(16))}`
     }
-  } else if (rootPath && (url[0] === '.' || url[0] === '/')) {
-    url = URI.file(path.normalize(path.join(rootPath, url))).toString()
+  } else if (folderUri && (url[0] === '.' || url[0] === '/')) {
+    url = URI.file(path.posix.join(folderUri.fsPath, url)).toString()
   }
   return url
 }
@@ -387,20 +433,10 @@ function getHTTPRequestService(): RequestService {
   }
 }
 
-function getSchemaAssociations(enableDefaultSchemas: boolean): ISchemaAssociation[] {
+function getSchemaAssociations(): ISchemaAssociation[] {
   const associations: ISchemaAssociation[] = []
   associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
   associations.push({ fileMatch: ['package.json'], uri: 'vscode://schemas/vscode-extensions' })
-  if (enableDefaultSchemas) {
-    for (let item of catalog.schemas) {
-      let { fileMatch, url } = item
-      if (Array.isArray(fileMatch)) {
-        associations.push({ fileMatch, uri: url })
-      } else if (typeof fileMatch === 'string') {
-        associations.push({ fileMatch: [fileMatch], uri: url })
-      }
-    }
-  }
   extensions.all.forEach(extension => {
     const packageJSON = extension.packageJSON
     if (packageJSON && packageJSON.contributes && packageJSON.contributes.jsonValidation) {
