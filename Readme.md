@@ -36,14 +36,17 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 
 ## Configuration options
 
-- `json.enable` set to `false` to disable json language server.
-- `json.enableDefaultSchemas` set to `false` to disable schemas from
-  [SchemaStore]()
-- `json.trace.server` trace LSP traffic in output channel.
-- `json.execArgv` add `execArgv` to `child_process.fork` used for start
-  json language server.
-- `json.format.enable` set to `false` to disable format.
-- `json.schemas` schema associations for json files.
+- `json.enable`: Enable json server default: `true`
+- `json.enableDefaultSchemas`: Enable builtin schemas from https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/api/json/catalog.json default: `true`
+- `json.trace.server`: default: `"off"`
+  Valid options: ["off","messages","verbose"]
+- `json.execArgv`: default: `[]`
+- `json.validate.enable`: Enable/disable JSON validation. default: `true`
+- `json.format.enable`: Enable format for json server default: `true`
+- `json.format.keepLines`: Keep all existing new lines when formatting. default: `false`
+- `json.maxItemsComputed`: The maximum number of outline symbols and folding regions computed (limited for performance reasons). default: `5000`
+- `json.schemaDownload.enable`: When enabled, JSON schemas can be fetched from http and https locations. default: `true`
+- `json.schemas`: Schemas associations for json files default: `[]`
 
 ## FAQ
 

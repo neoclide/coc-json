@@ -43,6 +43,8 @@ export interface ISchemaAssociation {
 
 namespace SettingIds {
   export const enableFormatter = 'json.format.enable'
+  export const enableKeepLines = 'json.format.keepLines'
+  export const enableValidation = 'json.validate.enable'
   export const enableSchemaDownload = 'json.schemaDownload.enable'
   export const maxItemsComputed = 'json.maxItemsComputed'
 }
@@ -50,7 +52,10 @@ namespace SettingIds {
 interface Settings {
   json?: {
     schemas?: JSONSchemaSettings[]
-    format?: { enable: boolean }
+    format?: { enable?: boolean }
+    keepLines?: { enable?: boolean }
+    validate?: { enable?: boolean }
+    resultLimit?: number
   }
   http?: {
     proxy?: string
@@ -63,6 +68,8 @@ interface JSONSchemaSettings {
   url?: string
   schema?: any
 }
+
+let resultLimit = 5000
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions, logger } = context
@@ -290,6 +297,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 }
 
 function getSettings(): Settings {
+  const configuration = workspace.getConfiguration()
+  resultLimit = Math.trunc(Math.max(0, Number(workspace.getConfiguration().get(SettingIds.maxItemsComputed)))) || 5000
+
   let httpSettings = workspace.getConfiguration('http')
   let settings: Settings = {
     http: {
@@ -297,8 +307,11 @@ function getSettings(): Settings {
       proxyStrictSSL: httpSettings.get('proxyStrictSSL')
     },
     json: {
-      format: workspace.getConfiguration('json').get('format'),
-      schemas: []
+      validate: { enable: configuration.get(SettingIds.enableValidation) },
+      format: { enable: configuration.get(SettingIds.enableFormatter) },
+      keepLines: { enable: configuration.get(SettingIds.enableKeepLines) },
+      schemas: [],
+      resultLimit: resultLimit + 1 // ask for one more so we can detect if the limit has been exceeded
     }
   }
   let schemaSettingsById: { [schemaId: string]: JSONSchemaSettings } = Object.create(null)
