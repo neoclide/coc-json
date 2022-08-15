@@ -327,9 +327,8 @@ function getSettings(): Settings {
     }
     for (const setting of schemaSettings) {
       const url = getSchemaId(setting, folderUri)
-      if (!url) {
-        continue
-      }
+      if (!url) continue
+
       let schemaSetting = schemaSettingsById[url]
       if (!schemaSetting) {
         schemaSetting = schemaSettingsById[url] = { url, fileMatch: [] }
@@ -340,8 +339,9 @@ function getSettings(): Settings {
         const resultingFileMatches = schemaSetting.fileMatch || []
         schemaSetting.fileMatch = resultingFileMatches
         const addMatch = (pattern: string) => { //  filter duplicates
-          if (resultingFileMatches.indexOf(pattern) === -1) {
+          if (!resultingFileMatches.includes(pattern)) {
             resultingFileMatches.push(pattern)
+            allFileMatches.push(pattern)
           }
         }
         for (const fileMatch of fileMatches) {
@@ -391,7 +391,7 @@ function getSettings(): Settings {
     for (let item of catalog.schemas) {
       let { fileMatch, url } = item
       if (Array.isArray(fileMatch)) {
-        if (allFileMatches.some(s => !fileMatch.includes(s))) {
+        if (!allFileMatches.some(s => fileMatch.includes(s))) {
           settings.json!.schemas!.push({ fileMatch, url })
         }
       } else if (typeof fileMatch === 'string') {
