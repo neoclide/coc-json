@@ -391,7 +391,7 @@ function getSettings(): Settings {
     for (let item of catalog.schemas) {
       let { fileMatch, url } = item
       if (Array.isArray(fileMatch)) {
-        if (allFileMatches.some(s => !fileMatch.includes(s))) {
+        if (!allFileMatches.some(s => fileMatch.includes(s))) {
           settings.json!.schemas!.push({ fileMatch, url })
         }
       } else if (typeof fileMatch === 'string') {
