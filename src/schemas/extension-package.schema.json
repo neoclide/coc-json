@@ -115,10 +115,10 @@
             "body": "onCommand:${1:command}"
           },
           {
-            "body": "workspaceContains${1:filepath}"
+            "body": "workspaceContains:${1:filepath}"
           },
           {
-            "body": "onFileSystem${1:scheme}"
+            "body": "onFileSystem:${1:scheme}"
           },
           {
             "body": "*"
@@ -211,15 +211,10 @@
             ],
             "properties": {
               "fileMatch": {
-                "type": [
-                  "string",
-                  "array"
-                ],
+                "type": ["string", "array"],
                 "description": "The file pattern (or an array of patterns) to match, for example 'package.json' or '*.launch'. Exclusion patterns start with '!'",
                 "items": {
-                  "type": [
-                    "string"
-                  ]
+                  "type": ["string"]
                 }
               },
               "url": {

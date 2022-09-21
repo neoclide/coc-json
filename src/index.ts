@@ -77,7 +77,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
   const file = context.asAbsolutePath('./lib/server.js')
-  const enableDefaultSchemas = config.enableDefaultSchemas
   const selector = ['json', 'jsonc']
   let fileSchemaErrors = new Map<string, string>()
 
@@ -217,8 +216,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       }
       if (uriPath == 'vscode://settings') {
         let schemaContent = await promisify(fs.readFile)(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
-        let settingsSchema = JSON.parse(schemaContent)
-        let schema: any = Object.assign({}, settingsSchema)
+        let schema: any = JSON.parse(schemaContent)
         schema.properties = schema.properties || {}
         let schemes = extensions['schemes']
         if (schemes) Object.assign(schema.properties, schemes)
