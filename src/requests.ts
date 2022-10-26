@@ -2,6 +2,7 @@ import { URI } from 'vscode-uri'
 
 export interface RequestService {
   getContent(uri: string, encoding?: string): Thenable<string>
+  clearCache?(): Promise<string[]>
 }
 
 export function getScheme(uri: string): string {

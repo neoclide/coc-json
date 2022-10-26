@@ -1,18 +1,20 @@
-import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, fetch, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, NotificationType, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace, languages } from 'coc.nvim'
+import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
-import path from 'path'
-import stripBom from 'strip-bom'
 import os from 'os'
+import path from 'path'
+import { configure, getErrorStatusDescription, Headers, xhr, XHRResponse } from 'request-light'
 import { promisify } from 'util'
 import { CancellationToken, Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
 import { joinPath, RequestService } from './requests'
+import { JSONSchemaCache } from './schemaCache'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
 const resolveJson = typeof workspace.resolveJSONSchema === 'function'
 const networkSchemes = ['http', 'https']
+const retryTimeoutInHours = 2 * 24 // 2 days
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any> = new RequestType('json/validate')
@@ -23,7 +25,7 @@ namespace VSCodeContentRequest {
 }
 
 namespace SchemaContentChangeNotification {
-  export const type: NotificationType<string> = new NotificationType('json/schemaContent')
+  export const type: NotificationType<string[] | string> = new NotificationType('json/schemaContent')
 }
 
 namespace SchemaAssociationNotification {
@@ -77,9 +79,16 @@ let resultLimit = 5000
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions, logger } = context
-  const httpService = getHTTPRequestService()
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
+  let httpConfig = workspace.getConfiguration().get<any>('http', {}) as any
+  configure(httpConfig.proxy, !!httpConfig.proxyStrictSSL)
+  const outputChannel = window.createOutputChannel('json')
+  subscriptions.push(outputChannel)
+  const log = getLog(outputChannel)
+  subscriptions.push(log)
+  const httpService = getHTTPRequestService(context, log)
+
   const file = context.asAbsolutePath('./lib/server.js')
   const selector = ['json', 'jsonc']
   let fileSchemaErrors = new Map<string, string>()
@@ -91,16 +100,31 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (msg) client.outputChannel.appendLine(`Schema error: ${msg}`)
   }, null, subscriptions)
 
-  let serverOptions: ServerOptions = {
-    module: file,
-    transport: TransportKind.ipc,
-    options: {
-      cwd: workspace.root,
-      execArgv: config.execArgv
+  subscriptions.push(commands.registerCommand('json.clearCache', async () => {
+    if (httpService.clearCache) {
+      const cachedSchemas = await httpService.clearCache()
+      await client.sendNotification<string[] | string>(SchemaContentChangeNotification.type, cachedSchemas)
     }
+    void window.showInformationMessage('JSON schema cache cleared.')
+  }))
+
+  // The debug options for the server
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=' + (6000 + Math.round(Math.random() * 999))] }
+
+  let serverOptions: ServerOptions = {
+    run: {
+      module: file,
+      transport: TransportKind.ipc,
+      options: {
+        cwd: workspace.root,
+        execArgv: config.execArgv
+      }
+    },
+    debug: { module: file, transport: TransportKind.ipc, options: debugOptions }
   }
 
   let clientOptions: LanguageClientOptions = {
+    outputChannel,
     documentSelector: selector,
     synchronize: {
       configurationSection: ['json', 'http'],
@@ -115,6 +139,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
     middleware: {
       workspace: {
         didChangeConfiguration: () => client.sendNotification(DidChangeConfigurationNotification.type as any, { settings: getSettings() })
+      },
+      didOpen: async (textDocument, next) => {
+        if (path.basename(textDocument.uri) === 'coc-settings.json') {
+          Object.assign(textDocument, { languageId: 'jsonc' })
+        }
+        return next(textDocument)
       },
       handleDiagnostics: (uri: string, diagnostics: Diagnostic[], next: HandleDiagnosticsSignature) => {
         const schemaErrorIndex = diagnostics.findIndex(candidate => candidate.code === /* SchemaResolveError */ 0x300)
@@ -187,9 +217,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   let client = new LanguageClient('json', 'Json language server', serverOptions, clientOptions)
 
-  subscriptions.push(
-    services.registLanguageClient(client)
-  )
+  subscriptions.push(services.registerLanguageClient(client))
 
   client.onReady().then(() => {
     // associations
@@ -426,20 +454,89 @@ function getSchemaId(schema: JSONSchemaSettings, folderUri?: URI): string | unde
   return url
 }
 
-function getHTTPRequestService(): RequestService {
-  return {
-    getContent(uri: string, _encoding?: string): Promise<string> {
-      const headers = { 'Accept-Encoding': 'gzip, deflate' }
-      return fetch(uri, { headers }).then(res => {
-        if (typeof res === 'string') {
-          return res
-        }
-        if (Buffer.isBuffer(res)) {
-          return stripBom(res.toString('utf8'))
-        }
-        return JSON.stringify(res)
-      })
+function getHTTPRequestService(context: ExtensionContext, log: Log): RequestService {
+  let cache: JSONSchemaCache | undefined = undefined
+  const storagePath = context.storagePath
+
+  let clearCache: (() => Promise<string[]>) | undefined
+  if (typeof storagePath === 'string') {
+    const schemaCacheLocation = path.join(storagePath, 'json-schema-cache')
+    fs.mkdirSync(schemaCacheLocation, { recursive: true })
+
+    const schemaCache = new JSONSchemaCache(schemaCacheLocation, context.globalState)
+    log.trace(`[json schema cache] initial state: ${JSON.stringify(schemaCache.getCacheInfo(), null, ' ')}`)
+    cache = schemaCache
+    clearCache = async () => {
+      const cachedSchemas = await schemaCache.clearCache()
+      log.trace(`[json schema cache] cache cleared. Previously cached schemas: ${cachedSchemas.join(', ')}`)
+      return cachedSchemas
     }
+  }
+  const isXHRResponse = (error: any): error is XHRResponse => typeof error?.status === 'number'
+  const request = async (uri: string, etag?: string): Promise<string> => {
+    const headers: Headers = { 'Accept-Encoding': 'gzip, deflate' }
+    if (etag) {
+      headers['If-None-Match'] = etag
+    }
+    try {
+      log.trace(`[json schema cache] Requesting schema ${uri} etag ${etag}...`)
+
+      const response = await xhr({ url: uri, followRedirects: 5, headers })
+      if (cache) {
+        const etag = response.headers['etag']
+        if (typeof etag === 'string') {
+          log.trace(`[json schema cache] Storing schema ${uri} etag ${etag} in cache`)
+          await cache.putSchema(uri, etag, response.responseText)
+        } else {
+          log.trace(`[json schema cache] Response: schema ${uri} no etag`)
+        }
+      }
+      return response.responseText
+    } catch (error: unknown) {
+      if (isXHRResponse(error)) {
+        if (error.status === 304 && etag && cache) {
+
+          log.trace(`[json schema cache] Response: schema ${uri} unchanged etag ${etag}`)
+
+          const content = await cache.getSchema(uri, etag, true)
+          if (content) {
+            log.trace(`[json schema cache] Get schema ${uri} etag ${etag} from cache`)
+            return content
+          }
+          return request(uri)
+        }
+
+        let status = getErrorStatusDescription(error.status)
+        if (status && error.responseText) {
+          status = `${status}\n${error.responseText.substring(0, 200)}`
+        }
+        if (!status) {
+          status = error.toString()
+        }
+        log.trace(`[json schema cache] Respond schema ${uri} error ${status}`)
+
+        throw status
+      }
+      throw error
+    }
+  }
+
+
+  return {
+    getContent: async (uri: string) => {
+      if (cache && /^https?:\/\/json\.schemastore\.org\//.test(uri)) {
+        const content = await cache.getSchemaIfUpdatedSince(uri, retryTimeoutInHours)
+        if (content) {
+          if (log.isTrace()) {
+            log.trace(`[json schema cache] Schema ${uri} from cache without request (last accessed ${cache.getLastUpdatedInHours(uri)} hours ago)`)
+          }
+
+          return content
+        }
+      }
+      return request(uri, cache?.getETag(uri))
+    },
+    clearCache
   }
 }
 
@@ -490,4 +587,31 @@ function getSchemaAssociations(): ISchemaAssociation[] {
     return [associations] as any
   }
   return associations
+}
+
+interface Log {
+  trace(message: string): void
+  isTrace(): boolean
+  dispose(): void
+}
+
+const traceSetting = 'json.trace.server'
+function getLog(outputChannel: OutputChannel): Log {
+  let trace = workspace.getConfiguration().get(traceSetting) === 'verbose'
+  const configListener = workspace.onDidChangeConfiguration(e => {
+    if (e.affectsConfiguration(traceSetting)) {
+      trace = workspace.getConfiguration().get(traceSetting) === 'verbose'
+    }
+  })
+  return {
+    trace(message: string) {
+      if (trace) {
+        outputChannel.appendLine(message)
+      }
+    },
+    isTrace() {
+      return trace
+    },
+    dispose: () => configListener.dispose()
+  }
 }
