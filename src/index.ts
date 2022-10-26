@@ -2,6 +2,7 @@ import { commands, CompletionContext, CompletionItem, CompletionItemKind, Comple
 import fs from 'fs'
 import path from 'path'
 import stripBom from 'strip-bom'
+import os from 'os'
 import { promisify } from 'util'
 import { CancellationToken, Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
@@ -9,6 +10,9 @@ import catalog from './catalog.json'
 import { joinPath, RequestService } from './requests'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
+
+const resolveJson = typeof workspace.resolveJSONSchema === 'function'
+const networkSchemes = ['http', 'https']
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any> = new RequestType('json/validate')
@@ -214,6 +218,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (uri.scheme === 'untitled') {
         return Promise.reject(new ResponseError(3, `Unable to load ${uri.scheme}`))
       }
+      if (uriPath == 'vscode://schemas/vscode-extensions') {
+        return JSON.stringify(extensionPkg)
+      }
+      if (resolveJson && uri.scheme === 'vscode') {
+        let schema = workspace.resolveJSONSchema(uriPath)
+        if (!schema) void window.showErrorMessage(`Failed to resolve schema for ${uriPath}`)
+        return Promise.resolve(JSON.stringify(schema ?? {}))
+      }
       if (uriPath == 'vscode://settings') {
         let schemaContent = await promisify(fs.readFile)(path.join(workspace.pluginRoot, 'data/schema.json'), 'utf8')
         let schema: any = JSON.parse(schemaContent)
@@ -233,10 +245,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
         })
         return JSON.stringify(schema)
       }
-      if (uriPath == 'vscode://schemas/vscode-extensions') {
-        return JSON.stringify(extensionPkg)
+      if (uriPath.startsWith('vscode://')) {
+        return {}
       }
-      if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+      if (!networkSchemes.includes(uri.scheme)) {
         let doc = await workspace.loadFile(uriPath)
         schemaDocuments[uri.toString()] = true
         return doc.getDocumentContent()
@@ -433,7 +445,14 @@ function getHTTPRequestService(): RequestService {
 
 function getSchemaAssociations(): ISchemaAssociation[] {
   const associations: ISchemaAssociation[] = []
-  associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
+  if (resolveJson) {
+    let home = path.normalize(process.env.COC_VIMCONFIG) ?? path.join(os.homedir(), '.vim')
+    let userConfigFile = URI.file(path.join(home, 'coc-settings.json')).fsPath
+    associations.push({ fileMatch: [userConfigFile], uri: 'vscode://schemas/settings/user' })
+    associations.push({ fileMatch: ['coc-settings.json', `!${userConfigFile}`], uri: 'vscode://schemas/settings/folder' })
+  } else {
+    associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
+  }
   associations.push({ fileMatch: ['package.json'], uri: 'vscode://schemas/vscode-extensions' })
   extensions.all.forEach(extension => {
     const packageJSON = extension.packageJSON
