@@ -246,7 +246,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (uri.scheme === 'untitled') {
         return Promise.reject(new ResponseError(3, `Unable to load ${uri.scheme}`))
       }
-      if (uriPath == 'vscode://schemas/vscode-extensions') {
+      if (uriPath === 'vscode://schemas/vscode-data-schema') {
+        let obj = {
+          type: 'object',
+          properties: {
+            properties: extensionPkg.definitions.configurationEntry.properties.properties
+          }
+        }
+        return JSON.stringify(obj)
+      }
+      if (uriPath === 'vscode://schemas/vscode-extensions') {
         return JSON.stringify(extensionPkg)
       }
       if (resolveJson && uri.scheme === 'vscode') {
@@ -549,6 +558,12 @@ function getSchemaAssociations(): ISchemaAssociation[] {
     associations.push({ fileMatch: ['coc-settings.json', `!${userConfigFile}`], uri: 'vscode://schemas/settings/folder' })
   } else {
     associations.push({ fileMatch: ['coc-settings.json'], uri: 'vscode://settings' })
+  }
+  let fsPath = path.join(workspace.pluginRoot, 'data/schema.json')
+  if (fs.existsSync(fsPath)) {
+    fsPath = URI.file(fsPath).fsPath
+    associations.push({ fileMatch: [fsPath], uri: 'http://json-schema.org/draft-07/schema#' })
+    associations.push({ fileMatch: [fsPath], uri: 'vscode://schemas/vscode-data-schema' })
   }
   associations.push({ fileMatch: ['package.json'], uri: 'vscode://schemas/vscode-extensions' })
   extensions.all.forEach(extension => {
