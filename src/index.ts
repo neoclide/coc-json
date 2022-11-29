@@ -1,10 +1,10 @@
-import { commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
+import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { configure, getErrorStatusDescription, Headers, xhr, XHRResponse } from 'request-light'
 import { promisify } from 'util'
-import { CancellationToken, Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
+import { Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
 import { joinPath, RequestService } from './requests'
@@ -217,7 +217,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   let client = new LanguageClient('json', 'Json language server', serverOptions, clientOptions)
 
-  subscriptions.push(services.registerLanguageClient(client))
+  subscriptions.push(services.registLanguageClient(client))
 
   client.onReady().then(() => {
     // associations
