@@ -3,6 +3,7 @@
   "type": "object",
   "definitions": {
     "configurationEntry": {
+      "additionalProperties": true,
       "defaultSnippets": [
         {
           "body": {
@@ -12,9 +13,13 @@
         }
       ],
       "properties": {
+        "order": {
+          "description": "When specified, gives the order of this category of settings relative to other categories.",
+          "type": "integer"
+        },
         "title": {
           "type": "string",
-          "description": "A summary of the settings."
+          "description": "A title for the current category of settings. This label will be rendered in the Settings editor as a subheading. If the title is the same as the extension display name, then the category will be grouped under the main extension heading."
         },
         "properties": {
           "description": "Description of the configuration properties.",
@@ -26,6 +31,7 @@
           "additionalProperties": {
             "anyOf": [
               {
+                "title": "Schema of the configuration property.",
                 "$ref": "http://json-schema.org/draft-07/schema#"
               },
               {
@@ -66,6 +72,13 @@
                     },
                     "description": "Descriptions for enum values in the markdown format."
                   },
+                  "enumItemLabels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "markdownDescription": "Labels for enum values to be displayed in the Settings editor. When specified, the {0} values still show after the labels, but less prominently."
+                  },
                   "markdownDescription": {
                     "type": "string",
                     "description": "The description in the markdown format."
@@ -77,6 +90,20 @@
                   "markdownDeprecationMessage": {
                     "type": "string",
                     "description": "If set, the property is marked as deprecated and the given message is shown as an explanation in the markdown format."
+                  },
+                  "editPresentation": {
+                    "type": "string",
+                    "enum": ["singlelineText", "multilineText"],
+                    "enumDescriptions": [
+                      "The value will be shown in an inputbox.",
+                      "The value will be shown in a textarea."
+                    ],
+                    "description": "When specified, controls the presentation format of the string setting.",
+                    "default": "singlelineText"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "description": "When specified, gives the order of this setting relative to other settings within the same category. Settings with an order property will be placed before settings without this property set."
                   }
                 }
               }
@@ -182,17 +209,17 @@
           }
         },
         "configuration": {
-          "type": "object",
+          "type": ["array", "object"],
           "description": "Contributes configuration settings.",
-          "oneOf": [
-            {
-              "$ref": "#/definitions/configurationEntry"
-            },
+          "anyOf": [
             {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/configurationEntry"
               }
+            },
+            {
+              "$ref": "#/definitions/configurationEntry"
             }
           ]
         },

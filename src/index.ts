@@ -287,9 +287,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
       }
       if (!networkSchemes.includes(uri.scheme)) {
         let doc = await workspace.loadFile(uriPath)
-        schemaDocuments[uri.toString()] = true
-        return doc.getDocumentContent()
-      } else if (schemaDownloadEnabled) {
+        if (doc) {
+          schemaDocuments[uri.toString()] = true
+          return doc.getDocumentContent()
+        } else {
+          logger.error(`Unable to load schema of ${uri}`)
+          return '{}'
+        }
+      }
+      if (schemaDownloadEnabled) {
         return await Promise.resolve(httpService.getContent(uriPath))
       } else {
         logger.warn(`Schema download disabled!`)
