@@ -27,7 +27,7 @@
         "json.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable json server"
+          "description": "Enable json language server"
         },
         "json.enableDefaultSchemas": {
           "type": "boolean",
@@ -58,6 +58,7 @@
         },
         "json.format.enable": {
           "type": "boolean",
+          "scope": "window",
           "default": true,
           "description": "Enable format for json server"
         },
