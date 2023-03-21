@@ -559,7 +559,7 @@ function getSchemaAssociations(): ISchemaAssociation[] {
   const associations: ISchemaAssociation[] = []
   if (resolveJson) {
     let home = path.normalize(process.env.COC_VIMCONFIG) ?? path.join(os.homedir(), '.vim')
-    let userConfigFile = URI.file(path.join(home, 'coc-settings.json')).fsPath
+    let userConfigFile = URI.file(path.join(home, 'coc-settings.json')).fsPath.split(path.win32.sep).join(path.posix.sep)
     associations.push({ fileMatch: [userConfigFile], uri: 'vscode://schemas/settings/user' })
     associations.push({ fileMatch: ['coc-settings.json', `!${userConfigFile}`], uri: 'vscode://schemas/settings/folder' })
   } else {
