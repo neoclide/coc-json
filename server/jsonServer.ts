@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+	CodeAction, CodeActionKind,
 	Connection,
 	TextDocuments, InitializeParams, InitializeResult, NotificationType, RequestType,
 	DocumentRangeFormattingRequest, Disposable, ServerCapabilities, TextDocumentSyncKind, TextEdit, DocumentFormattingRequest, TextDocumentIdentifier, FormattingOptions, Diagnostic
@@ -171,6 +172,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 
 		const capabilities: ServerCapabilities = {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
+			codeActionProvider: true,
 			completionProvider: clientSnippetSupport ? {
 				resolveProvider: false, // turn off resolving as the current language service doesn't do anything on resolve. Also fixes #91747
 				triggerCharacters: ['"', ':']
@@ -416,6 +418,21 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 			}
 			return [];
 		}, [], `Error while computing document symbols for ${documentSymbolParams.textDocument.uri}`, token);
+	});
+
+	connection.onCodeAction((codeActionParams, token) => {
+		return runSafeAsync(runtime, async () => {
+			const document = documents.get(codeActionParams.textDocument.uri);
+			if (document) {
+				const sortCodeAction = CodeAction.create('Sort JSON', CodeActionKind.Source.concat('.sort', '.json'));
+				sortCodeAction.command = {
+					command: 'json.sort',
+					title: 'Sort JSON'
+				};
+				return [sortCodeAction];
+			}
+			return [];
+		}, [], `Error while computing code actions for ${codeActionParams.textDocument.uri}`, token);
 	});
 
 	function onFormat(textDocument: TextDocumentIdentifier, range: Range | undefined, options: FormattingOptions): TextEdit[] {
