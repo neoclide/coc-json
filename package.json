@@ -125,6 +125,11 @@
     ],
     "commands": [
       {
+        "command": "json.sort",
+        "title": "Soct JSON document",
+        "category": "JSON"
+      },
+      {
         "command": "json.clearCache",
         "title": "Clear schema cache",
         "category": "JSON"
