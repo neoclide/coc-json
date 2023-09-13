@@ -125,6 +125,11 @@
     ],
     "commands": [
       {
+        "command": "json.sort",
+        "title": "Soct JSON document",
+        "category": "JSON"
+      },
+      {
         "command": "json.clearCache",
         "title": "Clear schema cache",
         "category": "JSON"
@@ -143,13 +148,13 @@
     "@types/node": "^14.14",
     "coc.nvim": "^0.0.83-next.8",
     "esbuild": "^0.15.12",
-    "jsonc-parser": "^3.1.0",
-    "request-light": "^0.5.8",
+    "jsonc-parser": "^3.2.0",
+    "request-light": "^0.7.0",
     "typescript": "^4.1.3",
-    "vscode-json-languageservice": "^5.1.1",
-    "vscode-languageserver": "^8.1.0-next.1",
-    "vscode-languageserver-protocol": "^3.16.0",
-    "vscode-uri": "^3.0.6"
+    "vscode-json-languageservice": "^5.3.6",
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-protocol": "^3.17.3",
+    "vscode-uri": "^3.0.7"
   },
   "dependencies": {}
 }

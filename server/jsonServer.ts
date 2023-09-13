@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+	CodeAction, CodeActionKind,
 	Connection,
 	TextDocuments, InitializeParams, InitializeResult, NotificationType, RequestType,
 	DocumentRangeFormattingRequest, Disposable, ServerCapabilities, TextDocumentSyncKind, TextEdit, DocumentFormattingRequest, TextDocumentIdentifier, FormattingOptions, Diagnostic
@@ -11,7 +12,7 @@ import {
 
 import { runSafe, runSafeAsync } from './utils/runner';
 import { DiagnosticsSupport, registerDiagnosticsPullSupport, registerDiagnosticsPushSupport } from './utils/validation';
-import { TextDocument, JSONDocument, JSONSchema, getLanguageService, DocumentLanguageSettings, SchemaConfiguration, ClientCapabilities, Range, Position } from 'vscode-json-languageservice';
+import { TextDocument, JSONDocument, JSONSchema, getLanguageService, DocumentLanguageSettings, SchemaConfiguration, ClientCapabilities, Range, Position, SortOptions } from 'vscode-json-languageservice';
 import { getLanguageModelCache } from './languageModelCache';
 import { Utils, URI } from 'vscode-uri';
 
@@ -37,6 +38,21 @@ namespace ForceValidateRequest {
 
 namespace LanguageStatusRequest {
 	export const type: RequestType<string, JSONLanguageStatus, any> = new RequestType('json/languageStatus');
+}
+
+interface DocumentSortingParams {
+	/**
+	 * The uri of the document to sort.
+	 */
+	uri: string;
+	/**
+	* The format options
+	*/
+	options: SortOptions;
+}
+
+namespace DocumentSortingRequest {
+	export const type: RequestType<DocumentSortingParams, TextEdit[], any> = new RequestType('json/sort');
 }
 
 
@@ -156,6 +172,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 
 		const capabilities: ServerCapabilities = {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
+			codeActionProvider: true,
 			completionProvider: clientSnippetSupport ? {
 				resolveProvider: false, // turn off resolving as the current language service doesn't do anything on resolve. Also fixes #91747
 				triggerCharacters: ['"', ':']
@@ -286,6 +303,16 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		}
 	});
 
+	connection.onRequest(DocumentSortingRequest.type, async params => {
+		const uri = params.uri;
+		const options = params.options;
+		const document = documents.get(uri);
+		if (document) {
+			return languageService.sort(document, options);
+		}
+		return [];
+	});
+
 	function updateConfiguration() {
 		const languageSettings = {
 			validate: validateEnabled,
@@ -391,6 +418,21 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 			}
 			return [];
 		}, [], `Error while computing document symbols for ${documentSymbolParams.textDocument.uri}`, token);
+	});
+
+	connection.onCodeAction((codeActionParams, token) => {
+		return runSafeAsync(runtime, async () => {
+			const document = documents.get(codeActionParams.textDocument.uri);
+			if (document) {
+				const sortCodeAction = CodeAction.create('Sort JSON', CodeActionKind.Source.concat('.sort', '.json'));
+				sortCodeAction.command = {
+					command: 'json.sort',
+					title: 'Sort JSON'
+				};
+				return [sortCodeAction];
+			}
+			return [];
+		}, [], `Error while computing code actions for ${codeActionParams.textDocument.uri}`, token);
 	});
 
 	function onFormat(textDocument: TextDocumentIdentifier, range: Range | undefined, options: FormattingOptions): TextEdit[] {

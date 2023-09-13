@@ -1,9 +1,10 @@
-import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TransportKind, window, workspace } from 'coc.nvim'
+import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { configure, getErrorStatusDescription, Headers, xhr, XHRResponse } from 'request-light'
 import { promisify } from 'util'
+import { SortOptions } from 'vscode-json-languageservice'
 import { Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
@@ -30,6 +31,21 @@ namespace SchemaContentChangeNotification {
 
 namespace SchemaAssociationNotification {
   export const type: NotificationType<ISchemaAssociations | ISchemaAssociation[]> = new NotificationType('json/schemaAssociations')
+}
+
+interface DocumentSortingParams {
+  /**
+   * The uri of the document to sort.
+   */
+  uri: string
+  /**
+  * The format options
+  */
+  options: SortOptions
+}
+
+namespace DocumentSortingRequest {
+  export const type: RequestType<DocumentSortingParams, TextEdit[], any> = new RequestType('json/sort')
 }
 
 type ProviderResult<T> =
@@ -106,6 +122,28 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await client.sendNotification<string[] | string>(SchemaContentChangeNotification.type, cachedSchemas)
     }
     void window.showInformationMessage('JSON schema cache cleared.')
+  }))
+
+  subscriptions.push(commands.registerCommand('json.sort', async () => {
+    const doc = await workspace.document
+    if (!doc || ['json', 'jsonc'].indexOf(doc.filetype) == -1) return
+
+    const formatOptions = await workspace.getFormatOptions(doc.uri)
+    const options: SortOptions = {
+      tabSize: formatOptions.tabSize,
+      insertSpaces: formatOptions.insertSpaces,
+      trimTrailingWhitespace: formatOptions.trimTrailingWhitespace,
+      trimFinalNewlines: formatOptions.trimFinalNewlines,
+      insertFinalNewline: formatOptions.insertFinalNewline,
+    }
+    const params: DocumentSortingParams = {
+      uri: doc.uri,
+      options
+    }
+    const textEdits = await client.sendRequest(DocumentSortingRequest.type, params)
+    if (!textEdits.length) return
+
+    await doc.applyEdits(textEdits)
   }))
 
   // The debug options for the server
