@@ -34,6 +34,7 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 
 - `json.clearCache`: Clear schema cache.
 - `json.retryResolveSchema`: Retry resolve schema of current buffer.
+- `json.sort`: Sort json document.
 
 ## Configuration options
 
