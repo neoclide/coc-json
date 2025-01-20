@@ -3,6 +3,10 @@
   "version": "1.9.2",
   "description": "Json extension for coc.nvim",
   "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neoclide/coc-json.git"
+  },
   "publisher": "chemzqm",
   "keywords": [
     "coc.nvim",
