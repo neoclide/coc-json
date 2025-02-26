@@ -61,7 +61,7 @@ You can configure your vim to make that file with jsonc filetype to allow commen
 You have two choices:
 
 - use `$schema` in your json.
-- create json schema file and then configure `json.schemes` in your `coc-settings.json`, check out https://github.com/neoclide/coc-json/blob/master/package.json#L55
+- create json schema file and then configure `json.schemas` in your `coc-settings.json`, check out https://github.com/neoclide/coc-json/blob/06ea3ace3d0c0a8deaa70942d63345718f029612/package.json#L84
 
 ### Quotes are hidden?
 
