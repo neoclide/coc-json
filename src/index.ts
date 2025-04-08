@@ -231,6 +231,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             if (textEdit && textEdit.newText) {
               let newText = insertText || textEdit.newText
               textEdit.newText = newText
+              if (!TextEdit.is(textEdit)) continue
               let { start, end } = textEdit.range
               if (line[start.character] && line[end.character - 1] && /^".*"$/.test(label)) {
                 item.label = item.label.slice(1, -1)
