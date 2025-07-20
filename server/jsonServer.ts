@@ -220,7 +220,10 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		schema?: JSONSchema;
 	}
 
-
+	// Type for schema configuration with source tracking
+	type SchemaConfigurationWithSource = SchemaConfiguration & {
+		source: 'user' | 'default';
+	};
 
 	let jsonConfigurationSettings: JSONSchemaSettings[] | undefined = undefined;
 	let schemaAssociations: ISchemaAssociations | SchemaConfiguration[] | undefined = undefined;
@@ -313,26 +316,30 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		return [];
 	});
 
-	function updateConfiguration() {
+		function updateConfiguration() {
 		const languageSettings = {
 			validate: validateEnabled,
 			allowComments: true,
-			schemas: new Array<SchemaConfiguration>()
+			schemas: new Array<SchemaConfigurationWithSource>()
 		};
+
+		// Add default schemas (from catalog.json)
 		if (schemaAssociations) {
 			if (Array.isArray(schemaAssociations)) {
-				Array.prototype.push.apply(languageSettings.schemas, schemaAssociations);
+				Array.prototype.push.apply(languageSettings.schemas, schemaAssociations.map(s => ({ ...s, source: 'default' })));
 			} else {
 				for (const pattern in schemaAssociations) {
 					const association = schemaAssociations[pattern];
 					if (Array.isArray(association)) {
 						association.forEach(uri => {
-							languageSettings.schemas.push({ uri, fileMatch: [pattern] });
+							languageSettings.schemas.push({ uri, fileMatch: [pattern], source: 'default' });
 						});
 					}
 				}
 			}
 		}
+
+		// Add user schemas (from coc-settings.json)
 		if (jsonConfigurationSettings) {
 			jsonConfigurationSettings.forEach((schema, index) => {
 				let uri = schema.url;
@@ -340,13 +347,32 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 					uri = schema.schema.id || `vscode://schemas/custom/${index}`;
 				}
 				if (uri) {
-					languageSettings.schemas.push({ uri, fileMatch: schema.fileMatch, schema: schema.schema });
+					languageSettings.schemas.push({ uri, fileMatch: schema.fileMatch, schema: schema.schema, source: 'user' });
 				}
 			});
 		}
+
+		languageSettings.schemas = arbitrateSchemaConflicts(languageSettings.schemas);
+
 		languageService.configure(languageSettings);
 
 		diagnosticsSupport?.requestRefresh();
+	}
+
+	/**
+	 * Simple schema conflict resolution: user schemas take precedence over default schemas
+	 */
+	function arbitrateSchemaConflicts(schemas: SchemaConfigurationWithSource[]): SchemaConfigurationWithSource[] {
+		const userSchemas = schemas.filter(s => s.source === 'user');
+		const defaultSchemas = schemas.filter(s => s.source === 'default');
+
+		// If user has specified schemas, use only those
+		if (userSchemas.length > 0) {
+			return userSchemas;
+		}
+
+		// Otherwise, use all default schemas
+		return defaultSchemas;
 	}
 
 	async function validateTextDocument(textDocument: TextDocument): Promise<Diagnostic[]> {
