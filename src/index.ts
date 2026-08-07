@@ -578,7 +578,7 @@ function getHTTPRequestService(context: ExtensionContext, log: Log): RequestServ
 
   return {
     getContent: async (uri: string) => {
-      if (cache && /^https?:\/\/json\.schemastore\.org\//.test(uri)) {
+      if (cache && /^https?:\/\/(www|json)\.schemastore\.org\//.test(uri)) {
         const content = await cache.getSchemaIfUpdatedSince(uri, retryTimeoutInHours)
         if (content) {
           if (log.isTrace()) {
