@@ -8,14 +8,14 @@ import { SortOptions } from 'vscode-json-languageservice'
 import { Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
-import { promptConfigureTrustedDomains, registerConfigureTrustedDomains } from './configureTrustedDomains'
+import { recordTrustedDomain, registerConfigureTrustedDomains } from './configureTrustedDomains'
 import { registerCopyPath } from './copyJsonPath'
 import { joinPath, RequestService } from './requests'
 import { parseSchemaRegistry } from './schemaAssociations'
 import { JSONSchemaCache } from './schemaCache'
 import JsonSchemaList from './schemaList'
 import { showSchemaList } from './schemaStatus'
-import { matchesUrlPattern } from './trustedDomains'
+import { isSchemaUrlBlocked } from './trustedDomains'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
@@ -406,12 +406,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
       }
       if (schemaDownloadEnabled) {
         const trustedDomains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
-        if (!isSchemaUrlTrusted(uri, uriPath, trustedDomains)) {
-          const trusted = await promptConfigureTrustedDomains(uriPath)
-          if (!trusted) {
-            throw new ResponseError(-32000, `Location ${uriPath} is untrusted`)
-          }
+        if (isSchemaUrlBlocked(uri, trustedDomains)) {
+          throw new ResponseError(-32000, `Location ${uriPath} is untrusted`)
         }
+        // Domains are trusted by default; remember the ones actually used.
+        void recordTrustedDomain(uriPath).catch(e => {
+          logger.error(`json record trusted domain failed: ${e}`)
+        })
         return await Promise.resolve(httpService.getContent(uriPath))
       } else {
         logger.warn(`Schema download disabled!`)
@@ -771,17 +772,6 @@ async function getSchemaAssociations(): Promise<ISchemaAssociation[]> {
     return [associations] as any
   }
   return associations
-}
-
-function isSchemaUrlTrusted(uri: URI, schemaUri: string, trustedDomains: Record<string, boolean>): boolean {
-  if (uri.scheme !== 'http' && uri.scheme !== 'https') {
-    return true
-  }
-  if (matchesUrlPattern(uri, trustedDomains)) {
-    return true
-  }
-  const userSchemas = workspace.getConfiguration('json').get('schemas', []) as JSONSchemaSettings[]
-  return userSchemas.some(s => s.url === schemaUri)
 }
 
 interface Log {

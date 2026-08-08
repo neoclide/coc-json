@@ -45,7 +45,7 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.showSchemaList`: Show the schemas associated with the current file and open the selected one.
 - `json.copy`: Copy the JSON path of the cursor position, e.g. `glossary.GlossDiv.GlossList.GlossEntry.GlossTerm`.
 - `json.validate`: Validate JSON content against a schema, `json.validate <schemaUrl> <content>`.
-- `json.configureTrustedDomains`: Configure trusted schema download domains (`json.configureTrustedDomains <schemaUrl>`).
+- `json.configureTrustedDomains`: Configure trusted schema download domains for the current file.
 
 `json.copy` also registers the keymap `<Plug>(coc-json-copy)` through the
 `workspace.registerKeymap` API, bind it in your vimrc like:
@@ -66,7 +66,7 @@ nmap jc <Plug>(coc-json-copy)
 - `json.format.keepLines`: Keep all existing new lines when formatting. default: `false`
 - `json.maxItemsComputed`: The maximum number of outline symbols and folding regions computed (limited for performance reasons). default: `5000`
 - `json.schemaDownload.enable`: When enabled, JSON schemas can be fetched from http and https locations. default: `true`
-- `json.schemaDownload.trustedDomains`: Trusted domains or URIs for schema downloads. Keys can be full domains, full URIs or wildcard patterns (`https://*.example.com`, `*`), values indicate trusted (`true`) or blocked (`false`).
+- `json.schemaDownload.trustedDomains`: Schema download domains are trusted by default and recorded here automatically. Set a domain to `false` to block it. Use `:CocConfig` to manage (keys can be full domains, full URIs or wildcard patterns like `https://*.example.com` or `*`).
 - `json.schemas`: Schemas associations for json files default: `[]`
 - `json.validate.comments`: Severity of problems when comments are not permitted in JSON. Valid options: ["error","warning","ignore"]
 - `json.validate.trailingCommas`: Severity of trailing comma problems. Valid options: ["error","warning","ignore"]

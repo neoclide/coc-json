@@ -39,6 +39,41 @@ export function matchesUrlPattern(url: URI, trustedDomains: Record<string, boole
   return false
 }
 
+/**
+ * Whether a schema url is explicitly blocked. Domains are trusted by default:
+ * only a matching pattern with value `false` (or `*: false`) blocks a download,
+ * localhost is always allowed.
+ */
+export function isSchemaUrlBlocked(url: URI, trustedDomains: Record<string, boolean>): boolean {
+  if (isLocalhostAuthority(url.authority)) {
+    return false
+  }
+  for (const [pattern, isTrusted] of Object.entries(trustedDomains)) {
+    if (typeof pattern !== 'string' || pattern.trim() === '') {
+      continue
+    }
+    if (pattern === '*') {
+      return !isTrusted
+    }
+    try {
+      const patternUri = URI.parse(pattern)
+      if (url.scheme !== patternUri.scheme) {
+        continue
+      }
+      if (!matchesAuthority(url.authority, patternUri.authority)) {
+        continue
+      }
+      if (!matchesPath(url.path, patternUri.path)) {
+        continue
+      }
+      return !isTrusted
+    } catch {
+      continue
+    }
+  }
+  return false
+}
+
 function matchesAuthority(urlAuthority: string, patternAuthority: string): boolean {
   urlAuthority = urlAuthority.toLowerCase()
   patternAuthority = patternAuthority.toLowerCase()

@@ -5,9 +5,9 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import { commands, services, Uri, workspace, type Document } from 'coc.nvim'
 import { URI } from 'vscode-uri'
-import { updateTrustedDomains } from '../src/configureTrustedDomains'
+import { applyDomainSelection, getCandidateDomains, getDomain, recordTrustedDomain, updateTrustedDomains } from '../src/configureTrustedDomains'
 import { parseSchemaRegistry } from '../src/schemaAssociations'
-import { matchesUrlPattern } from '../src/trustedDomains'
+import { isSchemaUrlBlocked, matchesUrlPattern } from '../src/trustedDomains'
 
 describe('trusted schema domains', () => {
   it('matches full domains and uris', () => {
@@ -31,12 +31,55 @@ describe('trusted schema domains', () => {
     assert.equal(matchesUrlPattern(URI.parse('http://127.0.0.1/a.json'), {}), true)
   })
 
+  it('blocks only explicitly untrusted domains and trusts everything else by default', () => {
+    const url = URI.parse('https://www.example.com/schemas/x.json')
+    assert.equal(isSchemaUrlBlocked(url, {}), false)
+    assert.equal(isSchemaUrlBlocked(url, { 'https://www.example.com': false }), true)
+    assert.equal(isSchemaUrlBlocked(url, { 'https://www.example.com': true }), false)
+    assert.equal(isSchemaUrlBlocked(url, { '*': false }), true)
+    assert.equal(isSchemaUrlBlocked(URI.parse('http://localhost:3000/a.json'), { '*': false }), false)
+  })
+
+
   it('registers the configureTrustedDomains command and updates the config', async () => {
     assert.equal(commands.has('json.configureTrustedDomains'), true)
     await updateTrustedDomains('https://example.com')
     const domains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
     assert.equal(domains['https://example.com'], true)
     await updateTrustedDomains('https://example.com')
+  })
+
+  it('records downloaded schema domains as trusted by default', async () => {
+    await recordTrustedDomain('https://www.example.com/schemas/x.json')
+    const domains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
+    assert.equal(domains['https://www.example.com'], true)
+    await recordTrustedDomain('https://www.example.com/schemas/x.json')
+  })
+
+  it('collects only the domains associated with the current file', () => {
+    const domains = getCandidateDomains('file:///tmp/project/manifest.json')
+    assert.deepEqual(domains, ['https://www.schemastore.org'])
+    const unrelated = getCandidateDomains('file:///tmp/project/other.json')
+    assert.equal(unrelated.some(d => d.includes('schemastore')), false)
+  })
+
+  it('includes domains from extension jsonValidation contributions', () => {
+    const domains = getCandidateDomains('file:///tmp/x.schema.json')
+    assert.ok(domains.includes('http://json-schema.org'))
+  })
+
+  it('applies the multi-select domain list to trustedDomains', () => {
+    const next = applyDomainSelection(
+      { 'https://a.com': true, 'https://custom.com': true },
+      ['https://a.com', 'https://b.com'],
+      ['https://b.com']
+    )
+    assert.deepEqual(next, { 'https://custom.com': true, 'https://b.com': true })
+  })
+
+  it('extracts domains', () => {
+    assert.equal(getDomain('https://www.example.com/schemas/x.json'), 'https://www.example.com')
+    assert.equal(getDomain('file:///tmp/x.json'), undefined)
   })
 })
 
