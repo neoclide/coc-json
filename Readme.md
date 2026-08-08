@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.svg" alt="coc-json" width="128">
+</p>
+
 # coc-json
 
 Json language server extension for [coc.nvim](https://github.com/neoclide/coc.nvim).
