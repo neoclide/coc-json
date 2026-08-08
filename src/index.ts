@@ -1,4 +1,4 @@
-import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, listManager, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, QuickPickItem, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
+import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, listManager, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -8,6 +8,7 @@ import { SortOptions } from 'vscode-json-languageservice'
 import { Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
+import { promptConfigureTrustedDomains, registerConfigureTrustedDomains } from './configureTrustedDomains'
 import { registerCopyPath } from './copyJsonPath'
 import { joinPath, RequestService } from './requests'
 import { parseSchemaRegistry } from './schemaAssociations'
@@ -118,6 +119,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
   registerCopyPath(context)
+  registerConfigureTrustedDomains(context)
   let httpConfig = workspace.getConfiguration().get<any>('http', {}) as any
   configure(httpConfig.proxy, !!httpConfig.proxyStrictSSL)
   const outputChannel = window.createOutputChannel('json')
@@ -405,7 +407,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (schemaDownloadEnabled) {
         const trustedDomains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
         if (!isSchemaUrlTrusted(uri, uriPath, trustedDomains)) {
-          const trusted = await promptTrustedSchema(uriPath, uri)
+          const trusted = await promptConfigureTrustedDomains(uriPath)
           if (!trusted) {
             throw new ResponseError(-32000, `Location ${uriPath} is untrusted`)
           }
@@ -780,29 +782,6 @@ function isSchemaUrlTrusted(uri: URI, schemaUri: string, trustedDomains: Record<
   }
   const userSchemas = workspace.getConfiguration('json').get('schemas', []) as JSONSchemaSettings[]
   return userSchemas.some(s => s.url === schemaUri)
-}
-
-interface TrustItem extends QuickPickItem {
-  kind: 'domain' | 'uri'
-}
-
-async function promptTrustedSchema(schemaUri: string, uri: URI): Promise<boolean> {
-  const domain = `${uri.scheme}://${uri.authority}`
-  const items: TrustItem[] = [
-    { label: `Trust Domain: ${domain}`, description: 'Allow all schemas from this domain', kind: 'domain' },
-    { label: `Trust URI: ${schemaUri}`, description: 'Allow only this specific schema', kind: 'uri' }
-  ]
-  const picked = await window.showQuickPick(items, {
-    placeholder: 'Untrusted schema location, select how to configure trusted schema domains'
-  })
-  if (!picked) {
-    return false
-  }
-  const current = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
-  const next = { ...current }
-  next[picked.kind === 'domain' ? domain : schemaUri] = true
-  await workspace.getConfiguration('json.schemaDownload').update('trustedDomains', next, true)
-  return true
 }
 
 interface Log {

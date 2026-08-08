@@ -5,6 +5,7 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import { commands, services, Uri, workspace, type Document } from 'coc.nvim'
 import { URI } from 'vscode-uri'
+import { updateTrustedDomains } from '../src/configureTrustedDomains'
 import { parseSchemaRegistry } from '../src/schemaAssociations'
 import { matchesUrlPattern } from '../src/trustedDomains'
 
@@ -28,6 +29,14 @@ describe('trusted schema domains', () => {
     assert.equal(matchesUrlPattern(URI.parse('https://example.com/a.json'), { '*': false }), false)
     assert.equal(matchesUrlPattern(URI.parse('http://localhost:3000/a.json'), {}), true)
     assert.equal(matchesUrlPattern(URI.parse('http://127.0.0.1/a.json'), {}), true)
+  })
+
+  it('registers the configureTrustedDomains command and updates the config', async () => {
+    assert.equal(commands.has('json.configureTrustedDomains'), true)
+    await updateTrustedDomains('https://example.com')
+    const domains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
+    assert.equal(domains['https://example.com'], true)
+    await updateTrustedDomains('https://example.com')
   })
 })
 

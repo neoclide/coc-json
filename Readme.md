@@ -45,6 +45,7 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.showSchemaList`: Show the schemas associated with the current file and open the selected one.
 - `json.copy`: Copy the JSON path of the cursor position, e.g. `glossary.GlossDiv.GlossList.GlossEntry.GlossTerm`.
 - `json.validate`: Validate JSON content against a schema, `json.validate <schemaUrl> <content>`.
+- `json.configureTrustedDomains`: Configure trusted schema download domains (`json.configureTrustedDomains <schemaUrl>`).
 
 `json.copy` also registers the keymap `<Plug>(coc-json-copy)` through the
 `workspace.registerKeymap` API, bind it in your vimrc like:

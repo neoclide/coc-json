@@ -227,6 +227,11 @@
         "command": "json.validate",
         "title": "Validate JSON content against a schema",
         "category": "JSON"
+      },
+      {
+        "command": "json.configureTrustedDomains",
+        "title": "Configure trusted schema domains",
+        "category": "JSON"
       }
     ]
   },
