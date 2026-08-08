@@ -6,3 +6,4 @@
 - Fix language model cache evicting at capacity instead of overflow (upstream #309176).
 - Remove unnecessary `cancelled` log on request cancellation (upstream #307443).
 - Refresh the bundled SchemaStore catalog and add a scheduled workflow that keeps it updated automatically.
+- A user `json.schemas` `fileMatch` pattern now takes precedence over catalog schemas that match the same file name.

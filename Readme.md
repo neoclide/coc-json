@@ -56,6 +56,10 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.validate.schemaValidation`: Severity of problems from schema validation. Valid options: ["error","warning","ignore"]
 - `json.validate.schemaRequest`: Severity of problems when a schema cannot be resolved. Valid options: ["error","warning","ignore"]
 
+When a `json.schemas` entry has a `fileMatch` pattern, catalog schemas that
+can match the same file name are skipped, so your association takes precedence
+over the built-in schemas.
+
 ## FAQ
 
 ### How to suppress error `[json 521] [e] Comments are not permitted in JSON`?

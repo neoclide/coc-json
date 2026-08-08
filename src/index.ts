@@ -496,14 +496,19 @@ function getSettings(): Settings {
   }
 
   if (enableDefaultSchemas) {
+    // A user-defined fileMatch overrides catalog schemas that can match the
+    // same file name: e.g. a user "manifest.json" entry disables every catalog
+    // schema whose pattern also targets manifest.json files.
+    const userPatternBasenames = new Set(allFileMatches.map(pattern => pattern.slice(pattern.lastIndexOf('/') + 1)))
+    const coveredByUser = (pattern: string): boolean => userPatternBasenames.has(pattern.slice(pattern.lastIndexOf('/') + 1))
     for (let item of catalog.schemas) {
       let { fileMatch, url } = item
       if (Array.isArray(fileMatch)) {
-        if (!allFileMatches.some(s => fileMatch.includes(s))) {
+        if (!fileMatch.some(coveredByUser)) {
           settings.json!.schemas!.push({ fileMatch, url })
         }
       } else if (typeof fileMatch === 'string') {
-        if (!allFileMatches.includes(fileMatch)) {
+        if (!coveredByUser(fileMatch)) {
           settings.json!.schemas!.push({ fileMatch: [fileMatch], url })
         }
       }
