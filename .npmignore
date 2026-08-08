@@ -1,5 +1,12 @@
 src
 server
+test
 tsconfig.json
 *.map
 yarn.lock
+.github
+.codex
+AGENTS.md
+esbuild.js
+history.md
+migrate.md

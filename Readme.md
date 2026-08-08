@@ -2,6 +2,8 @@
 
 Json language server extension for [coc.nvim](https://github.com/neoclide/coc.nvim).
 
+[![CI](https://github.com/neoclide/coc-json/actions/workflows/ci.yaml/badge.svg)](https://github.com/neoclide/coc-json/actions/workflows/ci.yaml)
+
 The server code is extracted from VSCode, which uses
 [vscode-json-languageservice](https://www.npmjs.com/package/vscode-json-languageservice)
 
