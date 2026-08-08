@@ -36,6 +36,14 @@ namespace ForceValidateRequest {
 	export const type: RequestType<string, Diagnostic[], any> = new RequestType('json/validate');
 }
 
+namespace ForceValidateAllRequest {
+	export const type: RequestType<void, void, any> = new RequestType('json/validateAll');
+}
+
+namespace ValidateContentRequest {
+	export const type: RequestType<{ schemaUri: string; content: string }, Diagnostic[], any> = new RequestType('json/validateContent');
+}
+
 namespace LanguageStatusRequest {
 	export const type: RequestType<string, JSONLanguageStatus, any> = new RequestType('json/languageStatus');
 }
@@ -76,6 +84,8 @@ export interface RuntimeEnvironment {
 		setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]): Disposable;
 	};
 }
+
+const sortCodeActionKind = CodeActionKind.Source.concat('.sort', '.json');
 
 export function startServer(connection: Connection, runtime: RuntimeEnvironment) {
 
@@ -172,7 +182,9 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 
 		const capabilities: ServerCapabilities = {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
-			codeActionProvider: true,
+			codeActionProvider: {
+				codeActionKinds: [sortCodeActionKind]
+			},
 			completionProvider: clientSnippetSupport ? {
 				resolveProvider: false, // turn off resolving as the current language service doesn't do anything on resolve. Also fixes #91747
 				triggerCharacters: ['"', ':']
@@ -307,6 +319,17 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		return [];
 	});
 
+	connection.onRequest(ForceValidateAllRequest.type, async () => {
+		diagnosticsSupport?.requestRefresh();
+	});
+
+	connection.onRequest(ValidateContentRequest.type, async ({ schemaUri, content }) => {
+		const docURI = 'vscode://schemas/temp/' + new Date().getTime();
+		const document = TextDocument.create(docURI, 'json', 1, content);
+		updateConfiguration([{ uri: schemaUri, fileMatch: [docURI] }]);
+		return await validateTextDocument(document);
+	});
+
 	connection.onRequest(LanguageStatusRequest.type, async uri => {
 		const document = documents.get(uri);
 		if (document) {
@@ -327,7 +350,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		return [];
 	});
 
-	function updateConfiguration() {
+	function updateConfiguration(extraSchemas?: SchemaConfiguration[]) {
 		const languageSettings = {
 			validate: validateEnabled,
 			allowComments: true,
@@ -357,6 +380,9 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 					languageSettings.schemas.push({ uri, fileMatch: schema.fileMatch, schema: schema.schema });
 				}
 			});
+		}
+		if (extraSchemas) {
+			languageSettings.schemas.push(...extraSchemas);
 		}
 		languageService.configure(languageSettings);
 
@@ -446,7 +472,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		return runSafeAsync(runtime, async () => {
 			const document = documents.get(codeActionParams.textDocument.uri);
 			if (document) {
-				const sortCodeAction = CodeAction.create('Sort JSON', CodeActionKind.Source.concat('.sort', '.json'));
+				const sortCodeAction = CodeAction.create('Sort JSON', sortCodeActionKind);
 				sortCodeAction.command = {
 					command: 'json.sort',
 					title: 'Sort JSON'

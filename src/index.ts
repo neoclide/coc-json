@@ -1,4 +1,4 @@
-import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, listManager, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
+import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, listManager, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, QuickPickItem, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -10,9 +10,11 @@ import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
 import { registerCopyPath } from './copyJsonPath'
 import { joinPath, RequestService } from './requests'
+import { parseSchemaRegistry } from './schemaAssociations'
 import { JSONSchemaCache } from './schemaCache'
 import JsonSchemaList from './schemaList'
 import { showSchemaList } from './schemaStatus'
+import { matchesUrlPattern } from './trustedDomains'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
@@ -22,6 +24,10 @@ const retryTimeoutInHours = 2 * 24 // 2 days
 
 namespace ForceValidateRequest {
   export const type: RequestType<string, Diagnostic[], any> = new RequestType('json/validate')
+}
+
+namespace ValidateContentRequest {
+  export const type: RequestType<{ schemaUri: string; content: string }, Diagnostic[], any> = new RequestType('json/validateContent')
 }
 
 namespace VSCodeContentRequest {
@@ -75,6 +81,7 @@ namespace SettingIds {
   export const validationSchemaValidation = 'json.validate.schemaValidation'
   export const validationSchemaRequest = 'json.validate.schemaRequest'
   export const enableSchemaDownload = 'json.schemaDownload.enable'
+  export const trustedDomains = 'json.schemaDownload.trustedDomains'
   export const maxItemsComputed = 'json.maxItemsComputed'
 }
 
@@ -158,6 +165,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (!textEdits.length) return
 
     await doc.applyEdits(textEdits)
+  }))
+
+  subscriptions.push(commands.registerCommand('json.validate', async (schemaUri: string, content: string) => {
+    const diagnostics: Diagnostic[] = await client.sendRequest(ValidateContentRequest.type, { schemaUri, content })
+    return diagnostics
   }))
 
   // The debug options for the server
@@ -273,13 +285,55 @@ export async function activate(context: ExtensionContext): Promise<void> {
   subscriptions.push(services.registLanguageClient(client))
 
   client.onReady().then(() => {
-    // associations
-    client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
+    // Debounced schema association refresh, ported from upstream #327104.
+    let associationGeneration = 0
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined
+    const refreshSchemaAssociations = () => {
+      const generation = ++associationGeneration
+      if (refreshTimer) {
+        clearTimeout(refreshTimer)
+      }
+      refreshTimer = setTimeout(async () => {
+        refreshTimer = undefined
+        if (generation !== associationGeneration) {
+          return
+        }
+        const associations = await getSchemaAssociations()
+        if (generation !== associationGeneration) {
+          return
+        }
+        client.sendNotification(SchemaAssociationNotification.type, associations)
+      }, 500)
+    }
+    const registryWatchers: { dispose(): void }[] = []
+    const disposeRegistryWatchers = () => {
+      while (registryWatchers.length > 0) {
+        registryWatchers.pop()!.dispose()
+      }
+    }
+    const updateRegistryWatchers = () => {
+      disposeRegistryWatchers()
+      for (const registryUri of getSchemaRegistryUris()) {
+        try {
+          const watcher = workspace.createFileSystemWatcher(URI.parse(registryUri).fsPath)
+          watcher.onDidChange(() => refreshSchemaAssociations(), null, subscriptions)
+          watcher.onDidCreate(() => refreshSchemaAssociations(), null, subscriptions)
+          watcher.onDidDelete(() => refreshSchemaAssociations(), null, subscriptions)
+          registryWatchers.push(watcher)
+        } catch {
+          // registry file may not be watchable
+        }
+      }
+    }
+    updateRegistryWatchers()
+    refreshSchemaAssociations()
     extensions.onDidUnloadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
+      updateRegistryWatchers()
+      refreshSchemaAssociations()
     }, null, subscriptions)
     extensions.onDidLoadExtension(() => {
-      client.sendNotification(SchemaAssociationNotification.type, getSchemaAssociations())
+      updateRegistryWatchers()
+      refreshSchemaAssociations()
     }, null, subscriptions)
 
     let schemaDownloadEnabled = true
@@ -341,7 +395,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!networkSchemes.includes(uri.scheme)) {
         let doc = await workspace.loadFile(uriPath)
         if (doc) {
-          schemaDocuments[uri.toString()] = true
+          schemaDocuments[uri.toString(true)] = true
           return doc.getDocumentContent()
         } else {
           logger.error(`Unable to load schema of ${uri}`)
@@ -349,6 +403,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
       }
       if (schemaDownloadEnabled) {
+        const trustedDomains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
+        if (!isSchemaUrlTrusted(uri, uriPath, trustedDomains)) {
+          const trusted = await promptTrustedSchema(uriPath, uri)
+          if (!trusted) {
+            throw new ResponseError(-32000, `Location ${uriPath} is untrusted`)
+          }
+        }
         return await Promise.resolve(httpService.getContent(uriPath))
       } else {
         logger.warn(`Schema download disabled!`)
@@ -362,9 +423,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       }
       return false
     }
-    workspace.onDidChangeTextDocument(e => handleContentChange(e.textDocument.uri))
+    workspace.onDidChangeTextDocument(e => handleContentChange(URI.parse(e.textDocument.uri).toString(true)))
     workspace.onDidCloseTextDocument(doc => {
-      const uriString = doc.uri
+      const uriString = URI.parse(doc.uri).toString(true)
       if (handleContentChange(uriString)) {
         delete schemaDocuments[uriString]
       }
@@ -629,7 +690,22 @@ function getHTTPRequestService(context: ExtensionContext, log: Log): RequestServ
   }
 }
 
-function getSchemaAssociations(): ISchemaAssociation[] {
+function getSchemaRegistryUris(): string[] {
+  const result: string[] = []
+  for (const extension of extensions.all) {
+    const registries = extension.packageJSON?.contributes?.jsonValidationRegistry
+    if (Array.isArray(registries)) {
+      for (const registry of registries) {
+        if (typeof registry?.url === 'string') {
+          result.push(registry.url.startsWith('./') ? joinPath(URI.file(extension.extensionPath), registry.url).toString() : registry.url)
+        }
+      }
+    }
+  }
+  return result
+}
+
+async function getSchemaAssociations(): Promise<ISchemaAssociation[]> {
   const associations: ISchemaAssociation[] = []
   if (resolveJson) {
     let home = path.normalize(process.env.COC_VIMCONFIG) ?? path.join(os.homedir(), '.vim')
@@ -677,11 +753,56 @@ function getSchemaAssociations(): ISchemaAssociation[] {
       }
     }
   })
+  for (const registryUri of getSchemaRegistryUris()) {
+    try {
+      const doc = await workspace.loadFile(registryUri)
+      if (!doc) {
+        continue
+      }
+      associations.push(...parseSchemaRegistry(doc.getDocumentContent()))
+    } catch {
+      // ignore unavailable or invalid registry
+    }
+  }
   if (typeof languages['registerDocumentSemanticTokensProvider'] === 'undefined') {
     // coc.nvim before 316 PR merged, to make the server receive single params
     return [associations] as any
   }
   return associations
+}
+
+function isSchemaUrlTrusted(uri: URI, schemaUri: string, trustedDomains: Record<string, boolean>): boolean {
+  if (uri.scheme !== 'http' && uri.scheme !== 'https') {
+    return true
+  }
+  if (matchesUrlPattern(uri, trustedDomains)) {
+    return true
+  }
+  const userSchemas = workspace.getConfiguration('json').get('schemas', []) as JSONSchemaSettings[]
+  return userSchemas.some(s => s.url === schemaUri)
+}
+
+interface TrustItem extends QuickPickItem {
+  kind: 'domain' | 'uri'
+}
+
+async function promptTrustedSchema(schemaUri: string, uri: URI): Promise<boolean> {
+  const domain = `${uri.scheme}://${uri.authority}`
+  const items: TrustItem[] = [
+    { label: `Trust Domain: ${domain}`, description: 'Allow all schemas from this domain', kind: 'domain' },
+    { label: `Trust URI: ${schemaUri}`, description: 'Allow only this specific schema', kind: 'uri' }
+  ]
+  const picked = await window.showQuickPick(items, {
+    placeholder: 'Untrusted schema location, select how to configure trusted schema domains'
+  })
+  if (!picked) {
+    return false
+  }
+  const current = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
+  const next = { ...current }
+  next[picked.kind === 'domain' ? domain : schemaUri] = true
+  await workspace.getConfiguration('json.schemaDownload').update('trustedDomains', next, true)
+  return true
 }
 
 interface Log {

@@ -7,6 +7,27 @@ export interface JSONSchemaSetting {
   schema?: any
 }
 
+export interface SchemaAssociation {
+  fileMatch: string[]
+  uri: string
+}
+
+/**
+ * Parse a jsonValidationRegistry file: { schemas: [{ url, fileMatch }] }.
+ */
+export function parseSchemaRegistry(content: string): SchemaAssociation[] {
+  const result: SchemaAssociation[] = []
+  const data = JSON.parse(content) as { schemas?: { url?: string; fileMatch?: string[] }[] }
+  if (Array.isArray(data.schemas)) {
+    for (const schema of data.schemas) {
+      if (typeof schema?.url === 'string' && Array.isArray(schema.fileMatch) && schema.fileMatch.every(fm => typeof fm === 'string')) {
+        result.push({ fileMatch: schema.fileMatch, uri: schema.url })
+      }
+    }
+  }
+  return result
+}
+
 /**
  * Whether a schema fileMatch pattern can match the given resource, using the
  * same semantics as the language server's FilePatternAssociation.

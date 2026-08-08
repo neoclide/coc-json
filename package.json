@@ -137,6 +137,17 @@
             "usesOnlineServices"
           ]
         },
+        "json.schemaDownload.trustedDomains": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "markdownDescription": "Trusted domains for downloading JSON schemas. Keys can be full domains, full URIs or wildcard patterns (`https://*.example.com`, `*`), values indicate trusted (`true`) or blocked (`false`).",
+          "tags": [
+            "usesOnlineServices"
+          ],
+          "default": {}
+        },
         "json.schemas": {
           "type": "array",
           "scope": "resource",
@@ -153,16 +164,18 @@
             "properties": {
               "url": {
                 "type": "string",
-                "default": "/user.schema.json"
+                "default": "/user.schema.json",
+                "markdownDescription": "Schema URL or path."
               },
               "fileMatch": {
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "default": "MyFile.json"
+                  "default": "MyFile.json",
+                  "markdownDescription": "File pattern to match."
                 },
                 "minItems": 1,
-                "description": "File pattern to match."
+                "markdownDescription": "File patterns to match."
               },
               "schema": {
                 "$ref": "http://json-schema.org/draft-04/schema#",
@@ -209,6 +222,11 @@
         "command": "json.copy",
         "title": "Copy JSON path",
         "category": "JSON"
+      },
+      {
+        "command": "json.validate",
+        "title": "Validate JSON content against a schema",
+        "category": "JSON"
       }
     ]
   },
@@ -223,7 +241,7 @@
     "jsonc-parser": "^3.2.0",
     "request-light": "^0.7.0",
     "typescript": "^6.0.3",
-    "vscode-json-languageservice": "^5.4.3",
+    "vscode-json-languageservice": "^5.7.2",
     "vscode-languageserver": "^8.1.0",
     "vscode-languageserver-protocol": "^3.17.3",
     "vscode-uri": "^3.0.7"
