@@ -36,6 +36,16 @@ describe('json.showSchemaList', () => {
     assert.equal(items[0].description, undefined)
   })
 
+  it('hides internal vscode:// schemas', () => {
+    const items = buildSchemaItems(
+      ['vscode://schemas/vscode-extensions', 'https://www.schemastore.org/webextension.json'],
+      new Set(),
+      new Map()
+    )
+    assert.equal(items.length, 1)
+    assert.equal(items[0].label, 'WebExtensions')
+  })
+
   it('formats json content and keeps invalid content as-is', () => {
     assert.equal(formatSchemaContent('{"a":1}'), '{\n  "a": 1\n}')
     assert.equal(formatSchemaContent('not json'), 'not json')

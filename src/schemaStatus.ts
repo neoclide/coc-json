@@ -52,7 +52,9 @@ export function buildSchemaItems(
   userSchemaUrls: Set<string> = getConfiguredSchemaUrls(),
   extensionSchemaUrls: Map<string, string> = getExtensionSchemaUrls()
 ): SchemaListItem[] {
-  return schemas.map(uri => {
+  return schemas
+    .filter(uri => !uri.startsWith('vscode://'))
+    .map(uri => {
     const catalogEntry = CATALOG_BY_URL.get(uri)
     let label = uri
     if (catalogEntry?.name) {
