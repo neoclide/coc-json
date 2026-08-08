@@ -3,9 +3,9 @@
   "compilerOptions": {
     "declaration": false,
     "outDir": "lib",
-    "target": "es2015",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
     "noImplicitThis": true,
     "lib": ["es2017", "es2018", "es2019"],
     "plugins": []
