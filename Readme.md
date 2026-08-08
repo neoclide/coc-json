@@ -39,6 +39,14 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.sort`: Sort json document.
 - `json.selectSchema`: Select a schema for the current file (`CocList jsonschemas`). The chosen association is remembered and applied through `json.schemas`.
 - `json.showSchemaList`: Show the schemas associated with the current file and open the selected one.
+- `json.copy`: Copy the JSON path of the cursor position, e.g. `glossary.GlossDiv.GlossList.GlossEntry.GlossTerm`.
+
+`json.copy` also registers the keymap `<Plug>(coc-json-copy)` through the
+`workspace.registerKeymap` API, bind it in your vimrc like:
+
+```vim
+nmap jc <Plug>(coc-json-copy)
+```
 
 ## Configuration options
 

@@ -204,6 +204,11 @@
         "command": "json.showSchemaList",
         "title": "Show associated schemas",
         "category": "JSON"
+      },
+      {
+        "command": "json.copy",
+        "title": "Copy JSON path",
+        "category": "JSON"
       }
     ]
   },

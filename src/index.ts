@@ -8,6 +8,7 @@ import { SortOptions } from 'vscode-json-languageservice'
 import { Diagnostic, DidChangeConfigurationNotification, ResponseError } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
+import { registerCopyPath } from './copyJsonPath'
 import { joinPath, RequestService } from './requests'
 import { JSONSchemaCache } from './schemaCache'
 import JsonSchemaList from './schemaList'
@@ -109,6 +110,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions, logger } = context
   const config = workspace.getConfiguration().get<any>('json', {}) as any
   if (!config.enable) return
+  registerCopyPath(context)
   let httpConfig = workspace.getConfiguration().get<any>('http', {}) as any
   configure(httpConfig.proxy, !!httpConfig.proxyStrictSSL)
   const outputChannel = window.createOutputChannel('json')
