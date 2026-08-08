@@ -4,34 +4,33 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
 
 jobs:
-  build:
+  test:
+    name: coc-test (${{ matrix.editor }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        node: ['22', '23']
-
+        editor: [nvim, vim]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node }}
-          cache: 'npm'
+          node-version: 22
+          cache: npm
 
-      - run: npm install --frozen-lockfile
-      - run: npx tsc --noEmit
+      - name: Install dependencies
+        run: npm ci
 
-  integration:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Install editors
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y neovim vim
 
-      - run: npm install --frozen-lockfile
-      - run: sudo apt-get update && sudo apt-get install -y neovim
-      - run: npx coc-test 'test/**/*.test.ts'
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Integration tests (${{ matrix.editor }})
+        run: npm run test:integration:${{ matrix.editor }}
