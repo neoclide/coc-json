@@ -1,0 +1,46 @@
+name: Update schema catalog
+
+on:
+  schedule:
+    # Weekly on Monday 02:17 UTC.
+    - cron: '17 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: node scripts/update-catalog.mjs
+
+      - id: check
+        run: |
+          if git diff --quiet src/catalog.json; then
+            echo "No schema catalog changes"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="chore/update-schema-catalog-$(date +%Y%m%d)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add src/catalog.json
+          git commit -m 'chore: update schema catalog'
+          git push origin "$branch"
+          gh pr create --base master --head "$branch" \
+            --title "chore: update schema catalog" \
+            --body 'Automated update of the bundled SchemaStore catalog.'
