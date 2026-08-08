@@ -16,7 +16,17 @@
     "coc": ">= 0.0.80"
   },
   "scripts": {
-    "prepare": "node esbuild.js"
+    "prepare": "node esbuild.js",
+    "test": "coc-test 'test/**/*.test.ts'",
+    "test:integration": "coc-test 'test/**/*.test.ts'",
+    "test:integration:nvim": "coc-test --nvim 'test/**/*.test.ts'",
+    "test:integration:vim": "coc-test --vim 'test/**/*.test.ts'"
+  },
+  "coc-test": {
+    "user-settings": {
+      "json.enableDefaultSchemas": false,
+      "json.schemaDownload.enable": false
+    }
   },
   "activationEvents": [
     "onLanguage:json",
@@ -190,6 +200,7 @@
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
     "@types/node": "^16.18",
+    "coc-test": "^0.1.2",
     "coc.nvim": "^0.0.83-next.19",
     "esbuild": "^0.25.0",
     "jsonc-parser": "^3.2.0",
