@@ -10,3 +10,7 @@
 - Add `json.selectSchema` command to pick a schema for the current file interactively (#64); the selection is persisted in extension globalState.
 - Add `json.showSchemaList` command to list and open the schemas associated with the current file.
 - Add `json.copy` command to copy the JSON path at the cursor (#85), with a `workspace.registerKeymap` keymap `<Plug>(coc-json-copy)`.
+- Add `json.schemaDownload.trustedDomains` and prompt before downloading schemas from untrusted domains (upstream #287639).
+- Add `json.validate` command backed by the `json/validateContent` request, and the `json/validateAll` request (upstream #244784).
+- Support extension-contributed `jsonValidationRegistry` schema registries with debounced refresh (upstream #327104).
+- Adopt `CodeActionContext.only`/`codeActionKinds` (upstream #247402), avoid percent-encoding reserved chars in schema URLs (upstream #240654), and upgrade to `vscode-json-languageservice` 5.7.2.

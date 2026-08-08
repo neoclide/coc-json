@@ -44,6 +44,7 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.selectSchema`: Select a schema for the current file (`CocList jsonschemas`). The chosen association is remembered and applied through `json.schemas`.
 - `json.showSchemaList`: Show the schemas associated with the current file and open the selected one.
 - `json.copy`: Copy the JSON path of the cursor position, e.g. `glossary.GlossDiv.GlossList.GlossEntry.GlossTerm`.
+- `json.validate`: Validate JSON content against a schema, `json.validate <schemaUrl> <content>`.
 
 `json.copy` also registers the keymap `<Plug>(coc-json-copy)` through the
 `workspace.registerKeymap` API, bind it in your vimrc like:
@@ -64,6 +65,7 @@ nmap jc <Plug>(coc-json-copy)
 - `json.format.keepLines`: Keep all existing new lines when formatting. default: `false`
 - `json.maxItemsComputed`: The maximum number of outline symbols and folding regions computed (limited for performance reasons). default: `5000`
 - `json.schemaDownload.enable`: When enabled, JSON schemas can be fetched from http and https locations. default: `true`
+- `json.schemaDownload.trustedDomains`: Trusted domains or URIs for schema downloads. Keys can be full domains, full URIs or wildcard patterns (`https://*.example.com`, `*`), values indicate trusted (`true`) or blocked (`false`).
 - `json.schemas`: Schemas associations for json files default: `[]`
 - `json.validate.comments`: Severity of problems when comments are not permitted in JSON. Valid options: ["error","warning","ignore"]
 - `json.validate.trailingCommas`: Severity of trailing comma problems. Valid options: ["error","warning","ignore"]
@@ -73,6 +75,10 @@ nmap jc <Plug>(coc-json-copy)
 When a `json.schemas` entry has a `fileMatch` pattern, catalog schemas that
 can match the same file name are skipped, so your association takes precedence
 over the built-in schemas.
+
+Other extensions can contribute schema registries through
+`contributes.jsonValidationRegistry` files (`{ "schemas": [{ "url", "fileMatch" }] }`);
+changes are picked up automatically.
 
 ## FAQ
 
