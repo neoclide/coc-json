@@ -1,4 +1,4 @@
-import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
+import { CancellationToken, commands, CompletionContext, CompletionItem, CompletionItemKind, CompletionList, events, ExtensionContext, extensions, HandleDiagnosticsSignature, LanguageClient, LanguageClientOptions, languages, listManager, NotificationType, OutputChannel, Position, ProvideCompletionItemsSignature, RequestType, ResolveCompletionItemSignature, ServerOptions, services, TextEdit, TransportKind, window, workspace } from 'coc.nvim'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -10,6 +10,7 @@ import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
 import { joinPath, RequestService } from './requests'
 import { JSONSchemaCache } from './schemaCache'
+import JsonSchemaList from './schemaList'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
@@ -395,6 +396,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
       statusItem.isProgress = false
       statusItem.text = '⚠️'
     })
+  }))
+
+  subscriptions.push(listManager.registerList(new JsonSchemaList(context.globalState)))
+  subscriptions.push(commands.registerCommand('json.selectSchema', () => {
+    workspace.nvim.command('CocList jsonschemas', true)
   }))
 }
 

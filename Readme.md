@@ -37,6 +37,7 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.clearCache`: Clear schema cache.
 - `json.retryResolveSchema`: Retry resolve schema of current buffer.
 - `json.sort`: Sort json document.
+- `json.selectSchema`: Select a schema for the current file (`CocList jsonschemas`). The chosen association is remembered and applied through `json.schemas`.
 
 ## Configuration options
 

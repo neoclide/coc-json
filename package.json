@@ -194,6 +194,11 @@
         "command": "json.retryResolveSchema",
         "title": "Retry schema resolve",
         "category": "JSON"
+      },
+      {
+        "command": "json.selectSchema",
+        "title": "Select JSON schema",
+        "category": "JSON"
       }
     ]
   },
