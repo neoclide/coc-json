@@ -17,11 +17,12 @@
   },
   "scripts": {
     "prepare": "node esbuild.js",
+    "build": "node esbuild.js",
     "lint": "tsc -p tsconfig.json",
-    "test": "coc-test 'test/**/*.test.ts'",
-    "test:integration": "coc-test 'test/**/*.test.ts'",
-    "test:integration:nvim": "coc-test --nvim 'test/**/*.test.ts'",
-    "test:integration:vim": "coc-test --vim 'test/**/*.test.ts'"
+    "test": "npm run build && coc-test 'test/**/*.test.ts'",
+    "test:integration": "npm run build && coc-test 'test/**/*.test.ts'",
+    "test:integration:nvim": "npm run build && coc-test --nvim 'test/**/*.test.ts'",
+    "test:integration:vim": "npm run build && coc-test --vim 'test/**/*.test.ts'"
   },
   "coc-test": {
     "user-settings": {
