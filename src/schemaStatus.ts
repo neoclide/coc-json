@@ -1,5 +1,6 @@
 import { Extension, extensions, LanguageClient, QuickPickItem, window, workspace } from 'coc.nvim'
 import * as path from 'path'
+import { getErrorStatusDescription, xhr, XHRResponse } from 'request-light'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
 
@@ -110,11 +111,51 @@ async function openSchema(uri: string): Promise<void> {
     await workspace.openResource(uri)
     return
   }
+  await previewSchemaContent(uri)
+}
+
+/**
+ * Fetch a remote schema, format it and show it in a temporary unnamed buffer.
+ */
+export async function previewSchemaContent(uri: string): Promise<void> {
+  let content: string
   try {
-    await workspace.nvim.call('ui#open', [uri])
-  } catch {
-    void window.showInformationMessage(uri)
+    const parsed = URI.parse(uri)
+    if (parsed.scheme === 'http' || parsed.scheme === 'https') {
+      content = await window.withProgress({ title: `Loading schema ${uri}` }, () => fetchSchemaContent(uri))
+    } else {
+      content = await fetchSchemaContent(uri)
+    }
+  } catch (error: unknown) {
+    let message = String(error)
+    if (typeof (error as XHRResponse)?.status === 'number') {
+      message = getErrorStatusDescription((error as XHRResponse).status) || `HTTP ${(error as XHRResponse).status}`
+    }
+    void window.showErrorMessage(`Unable to load schema ${uri}: ${message}`)
+    return
   }
+  // Open the scratch buffer only after the content is available.
+  await showScratchBuffer(formatSchemaContent(content))
+}
+
+async function fetchSchemaContent(uri: string): Promise<string> {
+  const response = await xhr({ url: uri, followRedirects: 5, headers: { 'Accept-Encoding': 'gzip, deflate' } })
+  return response.responseText
+}
+
+export function formatSchemaContent(content: string): string {
+  try {
+    return JSON.stringify(JSON.parse(content), null, 2)
+  } catch {
+    return content
+  }
+}
+
+async function showScratchBuffer(content: string): Promise<void> {
+  const buffer = await workspace.nvim.createNewBuffer(true, true)
+  await buffer.setLines(content.split('\n'), { start: 0, end: -1, strictIndexing: false })
+  await workspace.nvim.call('setbufvar', [buffer.id, '&filetype', 'json'])
+  await workspace.nvim.command(`buffer ${buffer.id}`)
 }
 
 function getConfiguredSchemaUrls(): Set<string> {

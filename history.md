@@ -8,7 +8,7 @@
 - Refresh the bundled SchemaStore catalog and add a scheduled workflow that keeps it updated automatically.
 - A user `json.schemas` `fileMatch` pattern now takes precedence over catalog schemas that match the same file name.
 - Add `json.selectSchema` command to pick a schema for the current file interactively (#64); the selection is persisted in extension globalState.
-- Add `json.showSchemaList` command to list and open the schemas associated with the current file.
+- Add `json.showSchemaList` command to list the schemas associated with the current file; local schemas open in the editor and remote schemas are fetched, formatted and shown in a temporary unnamed buffer.
 - Add `json.copy` command to copy the JSON path at the cursor (#85), with a `workspace.registerKeymap` keymap `<Plug>(coc-json-copy)`.
 - Add `json.schemaDownload.trustedDomains` and prompt before downloading schemas from untrusted domains (upstream #287639).
 - Add `json.validate` command backed by the `json/validateContent` request, and the `json/validateAll` request (upstream #244784).
