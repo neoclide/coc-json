@@ -1,0 +1,123 @@
+import { Extension, extensions, LanguageClient, QuickPickItem, window, workspace } from 'coc.nvim'
+import * as path from 'path'
+import { URI } from 'vscode-uri'
+import catalog from './catalog.json'
+
+const CATALOG_BY_URL = new Map<string, { name?: string }>()
+for (const entry of catalog.schemas) {
+  CATALOG_BY_URL.set(entry.url, entry)
+}
+
+export interface SchemaListItem {
+  label: string
+  description?: string
+  uri: string
+}
+
+interface SchemaQuickPickItem extends QuickPickItem {
+  uri: string
+}
+
+/**
+ * Collect the schema urls contributed by extension jsonValidation sections.
+ */
+export function getExtensionSchemaUrls(): Map<string, string> {
+  const urls = new Map<string, string>()
+  for (const extension of extensions.all) {
+    const jsonValidations = extension.packageJSON?.contributes?.jsonValidation
+    if (!Array.isArray(jsonValidations)) {
+      continue
+    }
+    for (const jsonValidation of jsonValidations) {
+      const url = jsonValidation?.url
+      if (typeof url !== 'string') {
+        continue
+      }
+      const fullUrl = url.startsWith('./')
+        ? URI.file(path.join(extension.extensionPath, url)).toString()
+        : url
+      urls.set(fullUrl, extension.id)
+    }
+  }
+  return urls
+}
+
+/**
+ * Build display items for the schemas associated with a document, marking the
+ * source of each association (user settings, extension contribution, catalog).
+ */
+export function buildSchemaItems(
+  schemas: string[],
+  userSchemaUrls: Set<string> = getConfiguredSchemaUrls(),
+  extensionSchemaUrls: Map<string, string> = getExtensionSchemaUrls()
+): SchemaListItem[] {
+  return schemas.map(uri => {
+    const catalogEntry = CATALOG_BY_URL.get(uri)
+    let label = uri
+    if (catalogEntry?.name) {
+      label = catalogEntry.name
+    } else {
+      const short = uri.split('/').pop()
+      if (short) {
+        label = short
+      }
+    }
+    let description: string | undefined
+    if (userSchemaUrls.has(uri)) {
+      description = 'Configured in json.schemas'
+    } else if (extensionSchemaUrls.has(uri)) {
+      description = `Configured by extension: ${extensionSchemaUrls.get(uri)}`
+    } else if (catalogEntry) {
+      description = 'Catalog schema'
+    }
+    return { label, description, uri }
+  })
+}
+
+/**
+ * Show the schemas associated with the current document and open the chosen
+ * one. Exposes the upstream `_json.showAssociatedSchemaList` behavior as a
+ * user-invokable command.
+ */
+export async function showSchemaList(client: LanguageClient): Promise<void> {
+  const doc = await workspace.document
+  if (!doc || !doc.attached || (doc.languageId !== 'json' && doc.languageId !== 'jsonc')) {
+    return
+  }
+  const status = (await client.sendRequest('json/languageStatus', doc.uri)) as { schemas: string[] }
+  const items = buildSchemaItems(status.schemas)
+  if (items.length === 0) {
+    void window.showInformationMessage('No schema configured for this file')
+    return
+  }
+  const quickItems: SchemaQuickPickItem[] = items.map(item => ({
+    label: item.label,
+    description: item.description,
+    uri: item.uri
+  }))
+  const picked = await window.showQuickPick(quickItems, {
+    placeholder: `Select the schema to open for ${doc.uri}`
+  })
+  if (!picked) {
+    return
+  }
+  await openSchema(picked.uri)
+}
+
+async function openSchema(uri: string): Promise<void> {
+  const parsed = URI.parse(uri)
+  if (parsed.scheme === 'file') {
+    await workspace.openResource(uri)
+    return
+  }
+  try {
+    await workspace.nvim.call('ui#open', [uri])
+  } catch {
+    void window.showInformationMessage(uri)
+  }
+}
+
+function getConfiguredSchemaUrls(): Set<string> {
+  const settings = workspace.getConfiguration('json').get('schemas', []) as { url?: string }[]
+  return new Set(settings.map(s => s.url).filter((url): url is string => typeof url === 'string'))
+}

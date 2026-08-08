@@ -199,6 +199,11 @@
         "command": "json.selectSchema",
         "title": "Select JSON schema",
         "category": "JSON"
+      },
+      {
+        "command": "json.showSchemaList",
+        "title": "Show associated schemas",
+        "category": "JSON"
       }
     ]
   },

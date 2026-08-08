@@ -11,6 +11,7 @@ import catalog from './catalog.json'
 import { joinPath, RequestService } from './requests'
 import { JSONSchemaCache } from './schemaCache'
 import JsonSchemaList from './schemaList'
+import { showSchemaList } from './schemaStatus'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
@@ -401,6 +402,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
   subscriptions.push(listManager.registerList(new JsonSchemaList(context.globalState)))
   subscriptions.push(commands.registerCommand('json.selectSchema', () => {
     workspace.nvim.command('CocList jsonschemas', true)
+  }))
+  subscriptions.push(commands.registerCommand('json.showSchemaList', () => {
+    showSchemaList(client).catch(e => {
+      logger.error(`json.showSchemaList failed: ${e}`)
+    })
   }))
 }
 
