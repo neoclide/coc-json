@@ -12,7 +12,7 @@ import {
 
 import { runSafe, runSafeAsync } from './utils/runner';
 import { DiagnosticsSupport, registerDiagnosticsPullSupport, registerDiagnosticsPushSupport } from './utils/validation';
-import { TextDocument, JSONDocument, JSONSchema, getLanguageService, DocumentLanguageSettings, SchemaConfiguration, ClientCapabilities, Range, Position, SortOptions } from 'vscode-json-languageservice';
+import { TextDocument, JSONDocument, JSONSchema, getLanguageService, DocumentLanguageSettings, SchemaConfiguration, ClientCapabilities, Range, Position, SortOptions, SeverityLevel } from 'vscode-json-languageservice';
 import { getLanguageModelCache } from './languageModelCache';
 import { Utils, URI } from 'vscode-uri';
 
@@ -203,7 +203,13 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 			schemas?: JSONSchemaSettings[];
 			format?: { enable?: boolean };
 			keepLines?: { enable?: boolean };
-			validate?: { enable?: boolean };
+			validate?: {
+				enable?: boolean;
+				comments?: SeverityLevel;
+				trailingCommas?: SeverityLevel;
+				schemaValidation?: SeverityLevel;
+				schemaRequest?: SeverityLevel;
+			};
 			resultLimit?: number;
 			jsonFoldingLimit?: number;
 			jsoncFoldingLimit?: number;
@@ -226,6 +232,10 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 	let schemaAssociations: ISchemaAssociations | SchemaConfiguration[] | undefined = undefined;
 	let formatterRegistrations: Thenable<Disposable>[] | null = null;
 	let validateEnabled = true;
+	let commentsSeverity: SeverityLevel | undefined = undefined;
+	let trailingCommasSeverity: SeverityLevel | undefined = undefined;
+	let schemaValidationSeverity: SeverityLevel | undefined = undefined;
+	let schemaRequestSeverity: SeverityLevel | undefined = undefined;
 	let keepLinesEnabled = false;
 
 	// The settings have changed. Is sent on server activation as well.
@@ -234,6 +244,10 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		runtime.configureHttpRequests?.(settings?.http?.proxy, !!settings.http?.proxyStrictSSL);
 		jsonConfigurationSettings = settings.json?.schemas;
 		validateEnabled = !!settings.json?.validate?.enable;
+		commentsSeverity = settings.json?.validate?.comments;
+		trailingCommasSeverity = settings.json?.validate?.trailingCommas;
+		schemaValidationSeverity = settings.json?.validate?.schemaValidation;
+		schemaRequestSeverity = settings.json?.validate?.schemaRequest;
 		keepLinesEnabled = settings.json?.keepLines?.enable || false;
 		updateConfiguration();
 
@@ -354,7 +368,15 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 			return []; // ignore empty documents
 		}
 		const jsonDocument = getJSONDocument(textDocument);
-		const documentSettings: DocumentLanguageSettings = textDocument.languageId === 'jsonc' ? { comments: 'ignore', trailingCommas: 'warning' } : { comments: 'error', trailingCommas: 'error' };
+		const documentSettings: DocumentLanguageSettings = {
+			// coc.nvim serializes unset configuration values as '' instead of
+			// omitting them, so treat falsy severities as unset to keep the
+			// language defaults.
+			comments: commentsSeverity || (textDocument.languageId === 'jsonc' ? 'ignore' : 'error'),
+			trailingCommas: trailingCommasSeverity || (textDocument.languageId === 'jsonc' ? 'warning' : 'error'),
+			schemaValidation: schemaValidationSeverity || undefined,
+			schemaRequest: schemaRequestSeverity || undefined
+		};
 		return await languageService.doValidation(textDocument, jsonDocument, documentSettings);
 	}
 

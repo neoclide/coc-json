@@ -60,6 +60,46 @@
           "default": true,
           "description": "Enable/disable JSON validation."
         },
+        "json.validate.comments": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "error",
+            "warning",
+            "ignore"
+          ],
+          "description": "Severity of problems when comments are not permitted in JSON."
+        },
+        "json.validate.trailingCommas": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "error",
+            "warning",
+            "ignore"
+          ],
+          "description": "Severity of trailing comma problems."
+        },
+        "json.validate.schemaValidation": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "error",
+            "warning",
+            "ignore"
+          ],
+          "description": "Severity of problems from schema validation."
+        },
+        "json.validate.schemaRequest": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "error",
+            "warning",
+            "ignore"
+          ],
+          "description": "Severity of problems when a schema cannot be resolved."
+        },
         "json.format.enable": {
           "type": "boolean",
           "scope": "window",

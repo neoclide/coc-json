@@ -49,6 +49,10 @@ All features of [vscode-json-languageservice](https://www.npmjs.com/package/vsco
 - `json.maxItemsComputed`: The maximum number of outline symbols and folding regions computed (limited for performance reasons). default: `5000`
 - `json.schemaDownload.enable`: When enabled, JSON schemas can be fetched from http and https locations. default: `true`
 - `json.schemas`: Schemas associations for json files default: `[]`
+- `json.validate.comments`: Severity of problems when comments are not permitted in JSON. Valid options: ["error","warning","ignore"]
+- `json.validate.trailingCommas`: Severity of trailing comma problems. Valid options: ["error","warning","ignore"]
+- `json.validate.schemaValidation`: Severity of problems from schema validation. Valid options: ["error","warning","ignore"]
+- `json.validate.schemaRequest`: Severity of problems when a schema cannot be resolved. Valid options: ["error","warning","ignore"]
 
 ## FAQ
 

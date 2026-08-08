@@ -67,6 +67,10 @@ namespace SettingIds {
   export const enableFormatter = 'json.format.enable'
   export const enableKeepLines = 'json.format.keepLines'
   export const enableValidation = 'json.validate.enable'
+  export const validationComments = 'json.validate.comments'
+  export const validationTrailingCommas = 'json.validate.trailingCommas'
+  export const validationSchemaValidation = 'json.validate.schemaValidation'
+  export const validationSchemaRequest = 'json.validate.schemaRequest'
   export const enableSchemaDownload = 'json.schemaDownload.enable'
   export const maxItemsComputed = 'json.maxItemsComputed'
 }
@@ -76,7 +80,13 @@ interface Settings {
     schemas?: JSONSchemaSettings[]
     format?: { enable?: boolean }
     keepLines?: { enable?: boolean }
-    validate?: { enable?: boolean }
+    validate?: {
+      enable?: boolean
+      comments?: string
+      trailingCommas?: string
+      schemaValidation?: string
+      schemaRequest?: string
+    }
     resultLimit?: number
   }
   http?: {
@@ -400,7 +410,13 @@ function getSettings(): Settings {
       proxyStrictSSL: httpSettings.get('proxyStrictSSL')
     },
     json: {
-      validate: { enable: configuration.get(SettingIds.enableValidation) },
+      validate: {
+        enable: configuration.get(SettingIds.enableValidation),
+        comments: configuration.get(SettingIds.validationComments),
+        trailingCommas: configuration.get(SettingIds.validationTrailingCommas),
+        schemaValidation: configuration.get(SettingIds.validationSchemaValidation),
+        schemaRequest: configuration.get(SettingIds.validationSchemaRequest)
+      },
       format: { enable: configuration.get(SettingIds.enableFormatter) },
       keepLines: { enable: configuration.get(SettingIds.enableKeepLines) },
       schemas: [],
