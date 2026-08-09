@@ -470,7 +470,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     workspace.nvim.command('CocList jsonschemas', true)
   }))
   subscriptions.push(commands.registerCommand('json.showSchemaList', () => {
-    showSchemaList(client).catch(e => {
+    showSchemaList(client, httpService).catch(e => {
       logger.error(`json.showSchemaList failed: ${e}`)
     })
   }))
@@ -677,7 +677,9 @@ function getHTTPRequestService(context: ExtensionContext, log: Log): RequestServ
 
   return {
     getContent: async (uri: string) => {
-      if (cache && /^https?:\/\/(www|json)\.schemastore\.org\//.test(uri)) {
+      // Serve fresh cached schemas without a request; revalidate the rest with
+      // etags (304 -> cached content).
+      if (cache && /^https?:\/\//.test(uri)) {
         const content = await cache.getSchemaIfUpdatedSince(uri, retryTimeoutInHours)
         if (content) {
           if (log.isTrace()) {

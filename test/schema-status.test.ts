@@ -3,6 +3,7 @@ import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { describe, it } from 'node:test'
 import { commands, workspace } from 'coc.nvim'
+import type { RequestService } from '../src/requests'
 import { buildSchemaItems, formatSchemaContent, getExtensionSchemaUrls, previewSchemaContent } from '../src/schemaStatus'
 
 describe('json.showSchemaList', () => {
@@ -60,7 +61,16 @@ describe('json.showSchemaList', () => {
     await new Promise<void>(resolve => server.listen(0, '127.0.0.1', () => resolve()))
     const address = server.address() as AddressInfo
     try {
-      await previewSchemaContent(`http://127.0.0.1:${address.port}/schema.json`)
+      const service: RequestService = {
+        getContent: async (uri: string) => {
+          const response = await fetch(uri)
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+          }
+          return await response.text()
+        }
+      }
+      await previewSchemaContent(`http://127.0.0.1:${address.port}/schema.json`, service)
       const expected = JSON.stringify(JSON.parse(schema), null, 2)
       let lines: unknown[] = []
       const started = Date.now()
@@ -72,5 +82,19 @@ describe('json.showSchemaList', () => {
     } finally {
       await new Promise<void>(resolve => server.close(() => resolve()))
     }
+  })
+
+  it('loads preview content through the cache-aware request service', async () => {
+    const calls: string[] = []
+    const service: RequestService = {
+      getContent: async (uri: string) => {
+        calls.push(uri)
+        return '{"a":1}'
+      }
+    }
+    await previewSchemaContent('https://example.com/schema.json', service)
+    assert.deepEqual(calls, ['https://example.com/schema.json'])
+    const lines = (await workspace.nvim.call('getline', [1, '$'])) as unknown[]
+    assert.equal(lines.join('\n'), '{\n  "a": 1\n}')
   })
 })

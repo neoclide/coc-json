@@ -1,8 +1,8 @@
 import { Extension, extensions, LanguageClient, QuickPickItem, window, workspace } from 'coc.nvim'
 import * as path from 'path'
-import { getErrorStatusDescription, xhr, XHRResponse } from 'request-light'
 import { URI } from 'vscode-uri'
 import catalog from './catalog.json'
+import { RequestService } from './requests'
 
 const CATALOG_BY_URL = new Map<string, { name?: string }>()
 for (const entry of catalog.schemas) {
@@ -82,7 +82,7 @@ export function buildSchemaItems(
  * one. Exposes the upstream `_json.showAssociatedSchemaList` behavior as a
  * user-invokable command.
  */
-export async function showSchemaList(client: LanguageClient): Promise<void> {
+export async function showSchemaList(client: LanguageClient, requestService: RequestService): Promise<void> {
   const doc = await workspace.document
   if (!doc || !doc.attached || (doc.languageId !== 'json' && doc.languageId !== 'jsonc')) {
     return
@@ -104,45 +104,38 @@ export async function showSchemaList(client: LanguageClient): Promise<void> {
   if (!picked) {
     return
   }
-  await openSchema(picked.uri)
+  await openSchema(picked.uri, requestService)
 }
 
-async function openSchema(uri: string): Promise<void> {
+async function openSchema(uri: string, requestService: RequestService): Promise<void> {
   const parsed = URI.parse(uri)
   if (parsed.scheme === 'file') {
     await workspace.openResource(uri)
     return
   }
-  await previewSchemaContent(uri)
+  await previewSchemaContent(uri, requestService)
 }
 
 /**
- * Fetch a remote schema, format it and show it in a temporary unnamed buffer.
+ * Load a remote schema through the cache-aware request service, format it and
+ * show it in a temporary unnamed buffer.
  */
-export async function previewSchemaContent(uri: string): Promise<void> {
+export async function previewSchemaContent(uri: string, requestService: RequestService): Promise<void> {
   let content: string
   try {
     const parsed = URI.parse(uri)
     if (parsed.scheme === 'http' || parsed.scheme === 'https') {
-      content = await window.withProgress({ title: `Loading schema ${uri}` }, () => fetchSchemaContent(uri))
+      content = await window.withProgress({ title: `Loading schema ${uri}` }, () => requestService.getContent(uri))
     } else {
-      content = await fetchSchemaContent(uri)
+      content = await requestService.getContent(uri)
     }
   } catch (error: unknown) {
-    let message = String(error)
-    if (typeof (error as XHRResponse)?.status === 'number') {
-      message = getErrorStatusDescription((error as XHRResponse).status) || `HTTP ${(error as XHRResponse).status}`
-    }
+    const message = String(error)
     void window.showErrorMessage(`Unable to load schema ${uri}: ${message}`)
     return
   }
   // Open the scratch buffer only after the content is available.
   await showScratchBuffer(formatSchemaContent(content))
-}
-
-async function fetchSchemaContent(uri: string): Promise<string> {
-  const response = await xhr({ url: uri, followRedirects: 5, headers: { 'Accept-Encoding': 'gzip, deflate' } })
-  return response.responseText
 }
 
 export function formatSchemaContent(content: string): string {
