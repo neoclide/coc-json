@@ -1,5 +1,10 @@
 # Change log
 
+## 1.9.6
+
+- `json.showSchemaList` no longer lists internal `vscode://` schemas.
+- Remote schemas opened from `json.showSchemaList` load through the schema cache: fresh cached schemas are served without a request and the rest are revalidated with etags (304 -> cached content). Cache-first now applies to all http(s) schema downloads.
+
 ## 1.9.4
 
 - Add `json.validate.comments`, `json.validate.trailingCommas`, `json.validate.schemaValidation` and `json.validate.schemaRequest` configuration options to customize the severity of JSON validation diagnostics.
