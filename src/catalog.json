@@ -3,6 +3,12 @@
   "version": 1,
   "schemas": [
     {
+      "name": "glslint config",
+      "description": "glslint project config and shader-dialect preset (glslint.toml): ecosystem detection, #pragma expansion, shared-library and injected-define declarations",
+      "fileMatch": ["glslint.toml"],
+      "url": "https://raw.githubusercontent.com/johncarmack1984/glslint/main/schema/glslint.schema.json"
+    },
+    {
       "name": "Mermaid config",
       "description": "Configuration for Mermaid diagrams and charts",
       "fileMatch": ["mermaid.config.json", ".mermaidrc.json", "mermaidrc.json"],
@@ -806,6 +812,7 @@
       "url": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/v0.10/bottom.json",
       "versions": {
         "nightly": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/nightly/bottom.json",
+        "0.14.7": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/v0.14.7/bottom.json",
         "0.14.0": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/v0.14.0/bottom.json",
         "0.13.0": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/v0.13.0/bottom.json",
         "0.12.0": "https://raw.githubusercontent.com/ClementTsang/bottom/main/schema/v0.12.0/bottom.json",
@@ -2529,6 +2536,15 @@
       "description": "A YAML Crowdsec scenario configuration files",
       "fileMatch": ["**/scenarios/*/*.yaml"],
       "url": "https://raw.githubusercontent.com/crowdsecurity/crowdsec-yaml-schemas/main/scenario_schema.yaml"
+    },
+    {
+      "name": "crucible",
+      "description": "Settings for the crucible coding agent",
+      "fileMatch": [
+        "**/.crucible/config.json",
+        "**/.crucible/config.local.json"
+      ],
+      "url": "https://www.schemastore.org/crucible-code-schema.json"
     },
     {
       "name": "cypress.json",
@@ -4599,6 +4615,14 @@
       "url": "https://www.schemastore.org/json-patch.json"
     },
     {
+      "name": "Jsontron",
+      "description": "Jsontron vocabulary: rules and assert keywords using jq expressions for cross-field validation",
+      "url": "https://www.schemastore.org/jsontron-0.1.json",
+      "versions": {
+        "0.1": "https://www.schemastore.org/jsontron-0.1.json"
+      }
+    },
+    {
       "name": "jsconfig.json",
       "description": "JavaScript project configuration file",
       "fileMatch": ["jsconfig.json"],
@@ -6590,10 +6614,10 @@
       "url": "https://www.schemastore.org/replit.json"
     },
     {
-      "name": "repo-settings-as-code",
-      "description": "Declarative GitHub repository settings applied by the repo-settings-as-code action; accepts Probot Settings app files as-is. Documentation: https://github.com/Vivswan/repo-settings-as-code",
+      "name": "github-settings-as-code",
+      "description": "Declarative GitHub repository settings applied by the github-settings-as-code action; accepts Probot Settings app files as-is. Documentation: https://github.com/Vivswan/github-settings-as-code",
       "fileMatch": ["**/.github/settings.yml"],
-      "url": "https://raw.githubusercontent.com/Vivswan/repo-settings-as-code/main/lib/settings.schema.json"
+      "url": "https://raw.githubusercontent.com/Vivswan/github-settings-as-code/main/lib/settings.schema.json"
     },
     {
       "name": "reposets Configuration",
@@ -7890,7 +7914,7 @@
         "venvironment.json",
         "*.venvironment.json"
       ],
-      "url": "https://www.schemastore.org/venvironment-schema-v5.0.0.json",
+      "url": "https://www.schemastore.org/venvironment-schema-v5.1.0.json",
       "versions": {
         "1.0.0": "https://www.schemastore.org/venvironment-schema-v1.0.0.json",
         "1.1.0": "https://www.schemastore.org/venvironment-schema-v1.1.0.json",
@@ -7904,7 +7928,8 @@
         "4.0.0": "https://www.schemastore.org/venvironment-schema-v4.0.0.json",
         "4.1.0": "https://www.schemastore.org/venvironment-schema-v4.1.0.json",
         "4.2.0": "https://www.schemastore.org/venvironment-schema-v4.2.0.json",
-        "5.0.0": "https://www.schemastore.org/venvironment-schema-v5.0.0.json"
+        "5.0.0": "https://www.schemastore.org/venvironment-schema-v5.0.0.json",
+        "5.1.0": "https://www.schemastore.org/venvironment-schema-v5.1.0.json"
       }
     },
     {
@@ -7918,10 +7943,11 @@
         "venvplus.json",
         "*.venvplus.json"
       ],
-      "url": "https://www.schemastore.org/venvplus-schema-v1.1.0.json",
+      "url": "https://www.schemastore.org/venvplus-schema-v1.2.0.json",
       "versions": {
         "1.0.0": "https://www.schemastore.org/venvplus-schema-v1.0.0.json",
-        "1.1.0": "https://www.schemastore.org/venvplus-schema-v1.1.0.json"
+        "1.1.0": "https://www.schemastore.org/venvplus-schema-v1.1.0.json",
+        "1.2.0": "https://www.schemastore.org/venvplus-schema-v1.2.0.json"
       }
     },
     {
@@ -10960,9 +10986,10 @@
       "name": "OKF Graph",
       "description": "Graph generated for an OKF bundle",
       "fileMatch": ["okf.json"],
-      "url": "https://www.schemastore.org/okf-0.1.json",
+      "url": "https://www.schemastore.org/okf-0.2.json",
       "versions": {
-        "0.1": "https://www.schemastore.org/okf-0.1.json"
+        "0.1": "https://www.schemastore.org/okf-0.1.json",
+        "0.2": "https://www.schemastore.org/okf-0.2.json"
       }
     },
     {
@@ -10970,6 +10997,15 @@
       "description": "Configuration for preview servers in Claude Code Desktop",
       "fileMatch": ["**/.claude/launch.json"],
       "url": "https://www.schemastore.org/claude-code-launch.json"
+    },
+    {
+      "name": "ArchSmith diagram IR",
+      "description": "Intermediate representation consumed by ArchSmith to validate and render architecture diagrams",
+      "fileMatch": ["*.archsmith.json"],
+      "url": "https://ayeshlk.github.io/archsmith/schema/latest/diagram-schema.json",
+      "versions": {
+        "0.3.0": "https://ayeshlk.github.io/archsmith/schema/0.3.0/diagram-schema.json"
+      }
     }
   ]
 }
