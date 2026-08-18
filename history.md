@@ -1,3 +1,9 @@
+## 1.9.7
+
+- add release.yml (6f913a1)
+- chore: update schema catalog (#88) (6768b45)
+- docs: record 1.9.6 schema list and cache changes (2bb0b12)
+
 # Change log
 
 ## 1.9.6
