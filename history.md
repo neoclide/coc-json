@@ -1,3 +1,7 @@
+## 1.9.8
+
+- chore: update schema catalog (#89) (9659f14)
+
 ## 1.9.7
 
 - add release.yml (6f913a1)
