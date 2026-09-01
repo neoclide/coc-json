@@ -1,3 +1,7 @@
+## 1.9.9
+
+- chore: update schema catalog (#90) (5a3a91a)
+
 ## 1.9.8
 
 - chore: update schema catalog (#89) (9659f14)
