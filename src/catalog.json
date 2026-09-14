@@ -2321,18 +2321,6 @@
       "url": "https://www.schemastore.org/codecov.json"
     },
     {
-      "name": "CodeShip Pro services configuration files",
-      "description": "codeship-services.yml files",
-      "fileMatch": ["codeship-services.yml"],
-      "url": "https://www.schemastore.org/codeship-services.json"
-    },
-    {
-      "name": "CodeShip Pro steps configuration files",
-      "description": "codeship-steps.yml files",
-      "fileMatch": ["codeship-steps.yml"],
-      "url": "https://www.schemastore.org/codeship-steps.json"
-    },
-    {
       "name": "vcpkg manifest file",
       "description": "vcpkg manifest file",
       "fileMatch": ["vcpkg.json"],
@@ -2753,6 +2741,12 @@
       "description": "Datalogic Scan2Deploy CE file",
       "fileMatch": [".dlc.json"],
       "url": "https://www.schemastore.org/datalogic-scan2deploy-ce.json"
+    },
+    {
+      "name": "datavzrd",
+      "description": "Configuration file for datavzrd, a tool to create visual and interactive HTML reports from tabular data",
+      "fileMatch": ["*.datavzrd.yaml", "*.datavzrd.yml"],
+      "url": "https://datavzrd.github.io/schema/latest/datavzrd.schema.json"
     },
     {
       "name": "ddev-global",
@@ -4300,6 +4294,12 @@
       "url": "https://raw.githubusercontent.com/HaxeFoundation/haxelib/master/schema.json"
     },
     {
+      "name": "hum",
+      "description": "Hum project process manifest",
+      "fileMatch": ["hum.yaml"],
+      "url": "https://raw.githubusercontent.com/brettinternet/hum/main/hum.schema.json"
+    },
+    {
       "name": "Hayson",
       "description": "Project Haystack data",
       "fileMatch": ["*.hayson.json", "*.hayson.yaml", "*.hayson.yml"],
@@ -5837,8 +5837,9 @@
         "otel-sdk*.yaml",
         "otel-sdk*.yml"
       ],
-      "url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-configuration/refs/tags/v1.1.0/opentelemetry_configuration.json",
+      "url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-configuration/refs/tags/v1.2.0/opentelemetry_configuration.json",
       "versions": {
+        "1.2.0": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-configuration/refs/tags/v1.2.0/opentelemetry_configuration.json",
         "1.1.0": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-configuration/refs/tags/v1.1.0/opentelemetry_configuration.json",
         "1.0.0": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-configuration/refs/tags/v1.0.0/opentelemetry_configuration.json"
       }
@@ -11559,35 +11560,44 @@
       "name": "cfgd Config",
       "description": "cfgd root configuration file (cfgd.yaml)",
       "fileMatch": ["cfgd.yaml", "cfgd.yml"],
-      "url": "https://www.schemastore.org/cfgd-config-0.5.0.json",
+      "url": "https://www.schemastore.org/cfgd-config-0.10.0.json",
       "versions": {
-        "0.5.0": "https://www.schemastore.org/cfgd-config-0.5.0.json"
+        "0.5.0": "https://www.schemastore.org/cfgd-config-0.5.0.json",
+        "0.10.0": "https://www.schemastore.org/cfgd-config-0.10.0.json"
       }
     },
     {
       "name": "cfgd Module",
       "description": "cfgd Module definition document",
       "fileMatch": ["**/modules/*/module.yaml"],
-      "url": "https://www.schemastore.org/cfgd-module-0.5.0.json",
+      "url": "https://www.schemastore.org/cfgd-module-0.10.0.json",
       "versions": {
-        "0.5.0": "https://www.schemastore.org/cfgd-module-0.5.0.json"
+        "0.5.0": "https://www.schemastore.org/cfgd-module-0.5.0.json",
+        "0.10.0": "https://www.schemastore.org/cfgd-module-0.10.0.json"
       }
     },
     {
       "name": "cfgd Profile",
       "description": "cfgd Profile definition document",
-      "url": "https://www.schemastore.org/cfgd-profile-0.5.0.json",
+      "fileMatch": [
+        "**/profiles/*/profile.yaml",
+        "**/profiles/*.yaml",
+        "**/profiles/*.yml"
+      ],
+      "url": "https://www.schemastore.org/cfgd-profile-0.10.0.json",
       "versions": {
-        "0.5.0": "https://www.schemastore.org/cfgd-profile-0.5.0.json"
+        "0.5.0": "https://www.schemastore.org/cfgd-profile-0.5.0.json",
+        "0.10.0": "https://www.schemastore.org/cfgd-profile-0.10.0.json"
       }
     },
     {
       "name": "cfgd ConfigSource",
       "description": "cfgd multi-source configuration manifest (cfgd-source.yaml)",
       "fileMatch": ["cfgd-source.yaml", "cfgd-source.yml"],
-      "url": "https://www.schemastore.org/cfgd-configsource-0.5.0.json",
+      "url": "https://www.schemastore.org/cfgd-configsource-0.10.0.json",
       "versions": {
-        "0.5.0": "https://www.schemastore.org/cfgd-configsource-0.5.0.json"
+        "0.5.0": "https://www.schemastore.org/cfgd-configsource-0.5.0.json",
+        "0.10.0": "https://www.schemastore.org/cfgd-configsource-0.10.0.json"
       }
     },
     {
@@ -11648,6 +11658,24 @@
         "1.35": "https://github.com/vidispine/hull/blob/release-1.35/hull/values.schema.json",
         "1.36": "https://github.com/vidispine/hull/blob/release-1.36/hull/values.schema.json"
       }
+    },
+    {
+      "name": "urai-ecma",
+      "description": "Configuration file for urai-ecma: AST commentary, pruning, and LLM context packaging engine for ECMAScript codebases",
+      "fileMatch": ["urai.config.jsonc", "urai.config.json"],
+      "url": "https://www.schemastore.org/urai-ecma.json"
+    },
+    {
+      "name": "Production delivery manifest",
+      "description": "Rights-labelled video-production delivery manifest",
+      "fileMatch": ["production-delivery-manifest.json"],
+      "url": "https://raw.githubusercontent.com/SHARProduction/production-delivery-manifest-schema/v1.0.0/schema.json"
+    },
+    {
+      "name": "Defakto CI",
+      "description": "CI configuration files used at Defakto Security",
+      "fileMatch": ["**/.defakto/ci.yaml"],
+      "url": "https://defakto-security.github.io/build-actions/ci.schema.json"
     }
   ]
 }
