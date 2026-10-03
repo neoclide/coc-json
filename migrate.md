@@ -32,6 +32,12 @@ typecheck passed, Neovim 57/57 and Vim 57/57 passed, contract risk count was zer
 and `git diff --check` passed. Tests used the existing local coc.nvim checkout;
 HTTP fixtures and Vim sockets needed execution outside the filesystem sandbox.
 
+PR review follow-up: canonicalize HTTP(S) URLs at the shared request-service
+entry point, so schema previews and validation use the same cache key. Leave
+other URI schemes unchanged. A real HTTP/ETag regression downloads once,
+closes the server, and previews the original alias from cache. Build/typecheck,
+Neovim 58/58 and Vim 58/58 passed after this correction.
+
 ## Sync 2026-08-09
 
 Ported from `microsoft/vscode` `extensions/json-language-features`, upstream `main` at `d43a612ad8`:

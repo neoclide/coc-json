@@ -3,6 +3,7 @@
 ## 1.9.6
 
 - Canonicalize remote schema URLs before block-list checks and downloads; clear every schema alias sharing a cached URL.
+- Reuse the validation cache when previewing an equivalent schema URL, including while offline.
 - Support leading `${workspaceFolder}/` in `json.schemas.fileMatch`, including exclusions and literal glob characters in folder names.
 - Fix schema preview on Vim versions where `setbufvar()` returns void.
 - `json.showSchemaList` no longer lists internal `vscode://` schemas.

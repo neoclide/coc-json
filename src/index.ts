@@ -618,7 +618,7 @@ function getSchemaId(schema: JSONSchemaSettings, folderUri?: URI): string | unde
   return url
 }
 
-function getHTTPRequestService(context: ExtensionContext, log: Log): RequestService {
+export function getHTTPRequestService(context: Pick<ExtensionContext, 'storagePath' | 'globalState'>, log: Log): RequestService {
   let cache: JSONSchemaCache | undefined = undefined
   const storagePath = context.storagePath
 
@@ -688,6 +688,9 @@ function getHTTPRequestService(context: ExtensionContext, log: Log): RequestServ
 
   return {
     getContent: async (uri: string) => {
+      // Validation and schema previews must share the same request/cache key.
+      // Leave non-network URI schemes untouched.
+      if (/^https?:\/\//i.test(uri)) uri = new URL(uri).href
       // Serve fresh cached schemas without a request; revalidate the rest with
       // etags (304 -> cached content).
       if (cache && /^https?:\/\//.test(uri)) {
