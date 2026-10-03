@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict'
 import http from 'node:http'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import type { AddressInfo } from 'node:net'
 import { describe, it } from 'node:test'
-import { commands, workspace } from 'coc.nvim'
+import { commands, workspace, type Memento } from 'coc.nvim'
+import { getHTTPRequestService } from '../src/index'
 import type { RequestService } from '../src/requests'
 import { buildSchemaItems, formatSchemaContent, getExtensionSchemaUrls, previewSchemaContent } from '../src/schemaStatus'
 
@@ -96,5 +100,40 @@ describe('json.showSchemaList', () => {
     assert.deepEqual(calls, ['https://example.com/schema.json'])
     const lines = (await workspace.nvim.call('getline', [1, '$'])) as unknown[]
     assert.equal(lines.join('\n'), '{\n  "a": 1\n}')
+  })
+
+  it('previews a validation URL alias from the HTTP cache while offline', async () => {
+    const storagePath = await fs.mkdtemp(path.join(os.tmpdir(), 'coc-json-preview-'))
+    const schema = '{"title":"cached alias","type":"object"}'
+    const requests: string[] = []
+    const server = http.createServer((req, res) => {
+      requests.push(req.url!)
+      res.setHeader('etag', '"alias-v1"')
+      res.end(schema)
+    })
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+    const { port } = server.address() as AddressInfo
+    try {
+      const state: Record<string, unknown> = {}
+      const globalState = {
+        get: (key: string, fallback: unknown) => state[key] ?? fallback,
+        update: async (key: string, value: unknown) => { state[key] = value }
+      } as Memento
+      const service = getHTTPRequestService({ storagePath, globalState }, {
+        trace: () => {}, isTrace: () => false, dispose: () => {}
+      })
+      // The validation request uses the canonical URL; the preview receives the original alias.
+      assert.equal(await service.getContent(`http://127.0.0.1:${port}/schema%2Fdata.json`), schema)
+      await new Promise<void>(resolve => server.close(() => resolve()))
+      const buffer = await workspace.nvim.buffer
+      await buffer.setLines(['before preview'], { start: 0, end: -1, strictIndexing: false })
+      await previewSchemaContent(`http://127.0.0.1:${port}/nested/../schema%2Fdata.json`, service)
+      const lines = await workspace.nvim.call('getline', [1, '$']) as string[]
+      assert.equal(lines.join('\n'), JSON.stringify(JSON.parse(schema), null, 2))
+      assert.deepEqual(requests, ['/schema%2Fdata.json'])
+    } finally {
+      if (server.listening) await new Promise<void>(resolve => server.close(() => resolve()))
+      await fs.rm(storagePath, { recursive: true, force: true })
+    }
   })
 })

@@ -1,5 +1,18 @@
 import { URI } from 'vscode-uri'
 
+/** Use the same URL parser for policy decisions and HTTP dispatch. */
+export function getSchemaRequestUrl(uri: URI): URL {
+  return new URL(uri.toString(true))
+}
+
+function asMatchableUri(url: URI | URL): URI {
+  if (!(url instanceof URL)) {
+    if (url.scheme !== 'http' && url.scheme !== 'https') return url
+    url = getSchemaRequestUrl(url)
+  }
+  return URI.parse(url.href).with({ authority: url.host, path: url.pathname })
+}
+
 /**
  * Check whether a URL matches the trusted domains or URIs, ported from the
  * upstream json-language-features client.
@@ -9,7 +22,12 @@ import { URI } from 'vscode-uri'
  * (https://*.example.com, *), and values indicate trusted (true) or blocked
  * (false).
  */
-export function matchesUrlPattern(url: URI, trustedDomains: Record<string, boolean>): boolean {
+export function matchesUrlPattern(url: URI | URL, trustedDomains: Record<string, boolean>): boolean {
+  try {
+    url = asMatchableUri(url)
+  } catch {
+    return false
+  }
   if (isLocalhostAuthority(url.authority)) {
     return true
   }
@@ -21,7 +39,7 @@ export function matchesUrlPattern(url: URI, trustedDomains: Record<string, boole
       return isTrusted
     }
     try {
-      const patternUri = URI.parse(pattern)
+      const patternUri = asMatchableUri(URI.parse(pattern))
       if (url.scheme !== patternUri.scheme) {
         continue
       }
@@ -44,7 +62,12 @@ export function matchesUrlPattern(url: URI, trustedDomains: Record<string, boole
  * only a matching pattern with value `false` (or `*: false`) blocks a download,
  * localhost is always allowed.
  */
-export function isSchemaUrlBlocked(url: URI, trustedDomains: Record<string, boolean>): boolean {
+export function isSchemaUrlBlocked(url: URI | URL, trustedDomains: Record<string, boolean>): boolean {
+  try {
+    url = asMatchableUri(url)
+  } catch {
+    return true
+  }
   if (isLocalhostAuthority(url.authority)) {
     return false
   }
@@ -56,7 +79,7 @@ export function isSchemaUrlBlocked(url: URI, trustedDomains: Record<string, bool
       return !isTrusted
     }
     try {
-      const patternUri = URI.parse(pattern)
+      const patternUri = asMatchableUri(URI.parse(pattern))
       if (url.scheme !== patternUri.scheme) {
         continue
       }

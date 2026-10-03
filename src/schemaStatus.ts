@@ -149,7 +149,7 @@ export function formatSchemaContent(content: string): string {
 async function showScratchBuffer(content: string): Promise<void> {
   const buffer = await workspace.nvim.createNewBuffer(true, true)
   await buffer.setLines(content.split('\n'), { start: 0, end: -1, strictIndexing: false })
-  await workspace.nvim.call('setbufvar', [buffer.id, '&filetype', 'json'])
+  await buffer.setOption('filetype', 'json')
   await workspace.nvim.command(`buffer ${buffer.id}`)
 }
 
