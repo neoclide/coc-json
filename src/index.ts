@@ -15,7 +15,9 @@ import { parseSchemaRegistry } from './schemaAssociations'
 import { JSONSchemaCache } from './schemaCache'
 import JsonSchemaList from './schemaList'
 import { showSchemaList } from './schemaStatus'
-import { isSchemaUrlBlocked } from './trustedDomains'
+import { getSchemaRequestUrl, isSchemaUrlBlocked } from './trustedDomains'
+import { SchemaRequestAliases } from './schemaRequestAliases'
+import { expandWorkspaceFolder } from './utils/schemaFileMatch'
 import extensionPkg from './schemas/extension-package.schema.json'
 import { hash } from './utils/hash'
 
@@ -127,6 +129,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const log = getLog(outputChannel)
   subscriptions.push(log)
   const httpService = getHTTPRequestService(context, log)
+  const schemaRequestAliases = new SchemaRequestAliases()
 
   const file = context.asAbsolutePath('./lib/server.js')
   const selector = ['json', 'jsonc']
@@ -141,7 +144,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   subscriptions.push(commands.registerCommand('json.clearCache', async () => {
     if (httpService.clearCache) {
-      const cachedSchemas = await httpService.clearCache()
+      const cachedSchemas = await schemaRequestAliases.clear(() => httpService.clearCache!())
       await client.sendNotification<string[] | string>(SchemaContentChangeNotification.type, cachedSchemas)
     }
     void window.showInformationMessage('JSON schema cache cleared.')
@@ -405,15 +408,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
       }
       if (schemaDownloadEnabled) {
+        const requestUrl = getSchemaRequestUrl(uri)
         const trustedDomains = workspace.getConfiguration('json.schemaDownload').get('trustedDomains', {}) as Record<string, boolean>
-        if (isSchemaUrlBlocked(uri, trustedDomains)) {
-          throw new ResponseError(-32000, `Location ${uriPath} is untrusted`)
+        if (isSchemaUrlBlocked(requestUrl, trustedDomains)) {
+          throw new ResponseError(-32000, `Location ${requestUrl.href} is untrusted`)
         }
         // Domains are trusted by default; remember the ones actually used.
-        void recordTrustedDomain(uriPath).catch(e => {
+        void recordTrustedDomain(requestUrl.href).catch(e => {
           logger.error(`json record trusted domain failed: ${e}`)
         })
-        return await Promise.resolve(httpService.getContent(uriPath))
+        const content = await Promise.resolve(httpService.getContent(requestUrl.href))
+        if (httpService.clearCache) schemaRequestAliases.record(uriPath, requestUrl.href)
+        return content
       } else {
         logger.warn(`Schema download disabled!`)
       }
@@ -531,6 +537,11 @@ function getSettings(): Settings {
           }
         }
         for (const fileMatch of fileMatches) {
+          const expanded = expandWorkspaceFolder(fileMatch, folderUri)
+          if (expanded !== fileMatch) {
+            addMatch(expanded)
+            continue
+          }
           if (fileMatchPrefix) {
             if (fileMatch[0] === '/') {
               addMatch(fileMatchPrefix + fileMatch)

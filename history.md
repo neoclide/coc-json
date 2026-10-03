@@ -2,6 +2,9 @@
 
 ## 1.9.6
 
+- Canonicalize remote schema URLs before block-list checks and downloads; clear every schema alias sharing a cached URL.
+- Support leading `${workspaceFolder}/` in `json.schemas.fileMatch`, including exclusions and literal glob characters in folder names.
+- Fix schema preview on Vim versions where `setbufvar()` returns void.
 - `json.showSchemaList` no longer lists internal `vscode://` schemas.
 - Remote schemas opened from `json.showSchemaList` load through the schema cache: fresh cached schemas are served without a request and the rest are revalidated with etags (304 -> cached content). Cache-first now applies to all http(s) schema downloads.
 

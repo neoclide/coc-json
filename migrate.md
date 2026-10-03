@@ -1,5 +1,37 @@
 # Upstream sync log
 
+## Sync 2026-10-03
+
+Reviewed `microsoft/vscode` `extensions/json-language-features` from
+`d43a612ad8121ff1f7fe19a5ee13e237c3c5463c` to
+`67cb2a17e24d903be7d50486a70d9bd835e95ad6`.
+
+- `fb20064c0f4`: canonicalize the effective schema URL before policy checks,
+  download and cache lookup; invalidate original schema IDs when clearing the
+  canonical cache key. Preserve aliases refreshed during asynchronous clearing.
+  Keep Coc's explicit block-list/default-trust policy and localhost behavior.
+- `d4b0f3a68eb`: expand leading `${workspaceFolder}/` in schema file matches,
+  including exclusions, Windows drive normalization and literal glob characters.
+  Keep Coc's existing per-folder configuration collection and catalog priority.
+- `0a4fc0adc2c`: already covered by the bundled catalog's OpenAPI, Arazzo and
+  Overlay entries; do not duplicate them or change default trust settings.
+- `f3fa55c39d3`, `041d1b6643a`: defer ESM/LSP 3.18 language-service migration;
+  retain the compatible 5.7.2 service and LSP 3.17 host boundary. No dependency
+  parity claim is made.
+- `3879d0e80fa`: omit behavior-neutral lint changes.
+- `018b839d1b1`, `623a81d3445`, `d04893d5077`: omit VS Code test/build and
+  unrelated upstream lockfile changes.
+
+Added URL-policy, cache-alias/concurrency, workspace variable, exclusion and
+literal-glob regression coverage. Existing schema preview tests also exposed a
+Vim void-return incompatibility: use the buffer option API instead of reading
+the return value of `setbufvar`.
+
+Validation: baseline build/typecheck and Neovim 51/51 passed. Final build and
+typecheck passed, Neovim 57/57 and Vim 57/57 passed, contract risk count was zero,
+and `git diff --check` passed. Tests used the existing local coc.nvim checkout;
+HTTP fixtures and Vim sockets needed execution outside the filesystem sandbox.
+
 ## Sync 2026-08-09
 
 Ported from `microsoft/vscode` `extensions/json-language-features`, upstream `main` at `d43a612ad8`:
