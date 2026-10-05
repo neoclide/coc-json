@@ -1102,6 +1102,18 @@
       "url": "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-schemas.schema.json"
     },
     {
+      "name": "CloudCannon Initial Site Settings",
+      "description": "Supporting configuration file for CloudCannon containing build settings and site mode for new sites",
+      "fileMatch": ["**/.cloudcannon/initial-site-settings.json"],
+      "url": "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-initial-site-settings.schema.json"
+    },
+    {
+      "name": "CloudCannon Routing",
+      "description": "Supporting configuration file for CloudCannon containing an array of route rules for redirects and rewrites",
+      "fileMatch": ["**/.cloudcannon/routing.json"],
+      "url": "https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-routing.schema.json"
+    },
+    {
       "name": "Lando (landofile)",
       "description": "The configuration file for a Lando app. Documentation: https://github.com/lando-community/lando-spec",
       "fileMatch": [".lando.yml", ".lando.*.yml"],
@@ -1478,6 +1490,12 @@
       "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/partial-scheduled.json"
     },
     {
+      "name": "partial-inwards.json",
+      "description": "Inwards architecture linter configuration for pyproject.toml",
+      "fileMatch": [],
+      "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/partial-inwards.json"
+    },
+    {
       "name": "bozr.suite.json",
       "description": "Bozr test suite file",
       "fileMatch": [".suite.json", ".xsuite.json"],
@@ -1715,6 +1733,16 @@
       "description": "Backstage Catalog Info",
       "fileMatch": ["catalog-info.yaml", "*.catalog-info.yaml"],
       "url": "https://www.schemastore.org/catalog-info.json"
+    },
+    {
+      "name": "CausalJSON",
+      "description": "Open Causal Graph Format: causal graphs (DAGs, ADMGs, MAGs, PAGs, causal loop diagrams) with citation metadata",
+      "fileMatch": ["*.causal.json"],
+      "url": "https://opencausal.org/causaljson/0.2/causaljson.schema.json",
+      "versions": {
+        "0.1": "https://opencausal.org/causaljson/0.1/causaljson.schema.json",
+        "0.2": "https://opencausal.org/causaljson/0.2/causaljson.schema.json"
+      }
     },
     {
       "name": "Changie",
@@ -6895,16 +6923,22 @@
       "url": "https://github.com/Vivswan/github-settings-as-code/releases/latest/download/settings.schema.json"
     },
     {
-      "name": "reposets Configuration",
+      "name": "reposets.config.toml",
       "description": "Configuration for the reposets CLI tool for syncing GitHub repository settings",
       "fileMatch": ["reposets.config.toml", "reposets.config.json"],
-      "url": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/package/schemas/reposets.config.schema.json"
+      "url": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/schemas/3.0/config.json",
+      "versions": {
+        "3.0": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/schemas/3.0/config.json"
+      }
     },
     {
-      "name": "reposets Credentials",
+      "name": "reposets.credentials.toml",
       "description": "Authentication profiles for the reposets CLI tool",
       "fileMatch": ["reposets.credentials.toml", "reposets.credentials.json"],
-      "url": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/package/schemas/reposets.credentials.schema.json"
+      "url": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/schemas/3.0/credentials.json",
+      "versions": {
+        "3.0": "https://raw.githubusercontent.com/spencerbeggs/reposets/main/schemas/3.0/credentials.json"
+      }
     },
     {
       "name": "*.resjson",
@@ -7301,6 +7335,12 @@
       "description": "Serenity code generator (sergen) configuration file",
       "fileMatch": ["sergen.json", "sergen.*.json", "*.sergen.json"],
       "url": "https://www.schemastore.org/sergen.json"
+    },
+    {
+      "name": "serve.json",
+      "description": "Configuration file for Vercel's serve static file server",
+      "fileMatch": ["vercel.serve.json"],
+      "url": "https://www.schemastore.org/serve.json"
     },
     {
       "name": "settings.job",
@@ -9243,11 +9283,12 @@
       "name": "Apollo Router",
       "description": "Apollo Router: The runtime for graph-based API orchestration",
       "fileMatch": ["apollo-router-*.json"],
-      "url": "https://www.schemastore.org/apollo-router-2.9.0.json",
+      "url": "https://www.schemastore.org/apollo-router-2.17.0.json",
       "versions": {
         "2.8.1": "https://www.schemastore.org/apollo-router-2.8.1.json",
         "2.8.2": "https://www.schemastore.org/apollo-router-2.8.2.json",
-        "2.9.0": "https://www.schemastore.org/apollo-router-2.9.0.json"
+        "2.9.0": "https://www.schemastore.org/apollo-router-2.9.0.json",
+        "2.17.0": "https://www.schemastore.org/apollo-router-2.17.0.json"
       }
     },
     {
@@ -11862,9 +11903,9 @@
       "url": "https://defakto-security.github.io/build-actions/ci.schema.json"
     },
     {
-      "name": "AAES evidence export (aaes.export/v1)",
-      "description": "One JSON value in an aaes.export/v1 JSON Lines evidence export: a header, entry, or anchor line recording authorization decisions for AI agent actions; cryptographic verification is separate from structural validation",
-      "url": "https://aaes.ai/spec/v1/export.schema.json"
+      "name": "AAES evidence export (aaes.export/v2)",
+      "description": "One JSON value in an aaes.export/v2 JSON Lines evidence export: a header, entry, or anchor line recording authorization decisions for AI agent actions; cryptographic verification is separate from structural validation",
+      "url": "https://aaes.ai/spec/v2/export.schema.json"
     },
     {
       "name": "AAES evidence pack manifest (aaes.evidence-pack/1)",
