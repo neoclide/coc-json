@@ -1,3 +1,7 @@
+## 1.9.15
+
+- chore: update schema catalog (#96) (10a5c76)
+
 ## 1.9.14
 
 - fix: synchronize schema URL and workspace matching behavior (#95) (f507755)
