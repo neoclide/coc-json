@@ -1,3 +1,10 @@
+## 1.9.16
+
+- docs: add AGENTS.md for development and sync guidelines (b6a31c4)
+- Merge branch 'codex/upstream-sync-20261003' (e2a4cfe)
+- fix: share canonical schema cache keys with previews (cdd151b)
+- fix: synchronize schema URL and workspace matching behavior (6f04742)
+
 ## 1.9.15
 
 - chore: update schema catalog (#96) (10a5c76)
