@@ -1,3 +1,4 @@
 lib
 node_modules
 sync.sh
+.nvimlog
