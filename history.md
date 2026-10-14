@@ -1,3 +1,8 @@
+## 1.9.17
+
+- fix: exclude Neovim test log from releases (#98) (d2723ec)
+- chore: update schema catalog (#97) (21ff1cf)
+
 ## 1.9.16
 
 - docs: add AGENTS.md for development and sync guidelines (b6a31c4)
