@@ -81,6 +81,12 @@
       "url": "https://raw.githubusercontent.com/hashgraph-online/skill-publish/main/schemas/skill.schema.json"
     },
     {
+      "name": "HOL Guard Policy",
+      "description": "Policy file for HOL Guard, which decides what AI coding agents may run",
+      "fileMatch": ["guard-policy.yaml", "guard-policy.yml"],
+      "url": "https://hol.org/schema/policy/v1alpha1"
+    },
+    {
       "name": "release-hub.json",
       "description": "Configuration file for Release Hub",
       "fileMatch": [
@@ -457,6 +463,12 @@
       "description": "Angular CLI configuration file",
       "fileMatch": [".angular-cli.json", "angular-cli.json"],
       "url": "https://raw.githubusercontent.com/angular/angular-cli/v10.1.6/packages/angular/cli/lib/config/schema.json"
+    },
+    {
+      "name": "apm-policy.yml",
+      "description": "Agent Package Manager (APM) organization policy file",
+      "fileMatch": ["apm-policy.yml"],
+      "url": "https://microsoft.github.io/apm/specs/schemas/policy-v0.1.schema.json"
     },
     {
       "name": "apple-app-site-association",
@@ -4702,6 +4714,15 @@
       }
     },
     {
+      "name": "jactionlint",
+      "description": "Configuration file for jactionlint",
+      "fileMatch": [
+        "**/.github/jactionlint.yaml",
+        "**/.github/jactionlint.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/jdx/jactionlint/main/schema/jactionlint-config.json"
+    },
+    {
       "name": "Jasmine",
       "description": "jasmine JSON config file",
       "fileMatch": ["jasmine.json"],
@@ -5290,6 +5311,12 @@
       "url": "https://www.schemastore.org/maestro-flow.json"
     },
     {
+      "name": "mapcan",
+      "description": "mapcan CAN signal map: buses, devices, frames and signals (CAN, CAN FD, CANopen, SAE J1939)",
+      "fileMatch": ["*.mapcan.yaml", "*.mapcan.yml"],
+      "url": "https://ordu1453.github.io/mapcan/schema/v1.json"
+    },
+    {
       "name": "MapEHR Mapping",
       "description": "Mapping for MapEHR.com",
       "fileMatch": [".map.yml", ".map.yaml", ".map.json"],
@@ -5585,6 +5612,12 @@
       "url": "https://www.schemastore.org/modelsdev.json"
     },
     {
+      "name": "modlab-last-run.json",
+      "description": "ModLab Mindustry homing lab single-run log (Universal Modder worked example)",
+      "fileMatch": ["modlab-last-run.json"],
+      "url": "https://modlabguides.online/schemas/modlab-mindustry-run-log-v1.schema.json"
+    },
+    {
       "name": "monospace.yml",
       "description": "MonoSpace configuration file",
       "fileMatch": ["monospace.yml"],
@@ -5626,10 +5659,13 @@
       "description": "Mergify configuration file",
       "fileMatch": [
         ".mergify.yml",
+        ".mergify.yaml",
         "**/.github/mergify.yml",
-        "**/.mergify/config.yml"
+        "**/.github/mergify.yaml",
+        "**/.mergify/config.yml",
+        "**/.mergify/config.yaml"
       ],
-      "url": "https://raw.githubusercontent.com/Mergifyio/docs/main/public/mergify-configuration-schema.json"
+      "url": "https://docs.mergify.com/mergify-configuration-schema.json"
     },
     {
       "name": ".mocharc",
@@ -8987,7 +9023,7 @@
       "name": "lychee",
       "description": "lychee link checker configuration file",
       "fileMatch": ["lychee.toml", ".lychee.toml"],
-      "url": "https://www.schemastore.org/lychee.json"
+      "url": "https://github.com/lycheeverse/lychee/releases/latest/download/schema.json"
     },
     {
       "name": "lint-staged (.lintstagedrc)",
@@ -9032,6 +9068,12 @@
         "*.mirrord.yml"
       ],
       "url": "https://raw.githubusercontent.com/metalbear-co/mirrord/main/mirrord-schema.json"
+    },
+    {
+      "name": "mirrord up config",
+      "description": "mirrord up configuration file",
+      "fileMatch": ["mirrord-up.yaml", "mirrord-up.yml"],
+      "url": "https://raw.githubusercontent.com/metalbear-co/mirrord/main/mirrord-up-schema.json"
     },
     {
       "name": "mise",
@@ -12106,6 +12148,66 @@
       "versions": {
         "1.0": "https://raw.githubusercontent.com/PRIDA-TAKON/debim/main/debim.schema.json"
       }
+    },
+    {
+      "name": "Haijun Code Settings",
+      "description": "Configuration settings for Haijun Code, an AI coding assistant CLI",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-code-settings.json"
+    },
+    {
+      "name": "Haijun Code Marketplace",
+      "description": "Marketplace plugin manifest for Haijun Code",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-code-marketplace.json"
+    },
+    {
+      "name": "Haijun Code Plugin Manifest",
+      "description": "Plugin manifest (.haijun-plugin/plugin.json) for a Haijun Code plugin",
+      "fileMatch": ["**/.haijun-plugin/plugin.json"],
+      "url": "https://www.schemastore.org/haijun-code-plugin-manifest.json"
+    },
+    {
+      "name": "Haijun Tracks Discovery",
+      "description": "Discovery index for Haijun Tracks, listing published tracks with metadata, distribution URLs, and integrity digests",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-tracks-discovery.json"
+    },
+    {
+      "name": "Haijun Box Plugin",
+      "description": "Haijun Box plugin manifest for extending the Haijun Box CLI",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-box.json"
+    },
+    {
+      "name": "Haijun Voice Extension",
+      "description": "Haijun Voice extension manifest for cross-platform AI voice communication",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-voice.json"
+    },
+    {
+      "name": "Tracks",
+      "description": "Tracks knowledge-base format for AI agents (Markdown-based knowledge modules)",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/tracks.json"
+    },
+    {
+      "name": "Haijun Turborepo",
+      "description": "Turborepo configuration for Haijun projects (turbo.json)",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-turborepo.json"
+    },
+    {
+      "name": "Haijun Changesets",
+      "description": "Changesets configuration for Haijun projects (.changeset/config.json)",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-changesets.json"
+    },
+    {
+      "name": "Haijun Release Please",
+      "description": "Release Please configuration for Haijun projects (release-please-config.json)",
+      "fileMatch": [],
+      "url": "https://www.schemastore.org/haijun-release-please.json"
     }
   ]
 }
