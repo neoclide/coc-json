@@ -1,3 +1,7 @@
+## 1.9.18
+
+- chore: update schema catalog (#99) (6c33388)
+
 ## 1.9.17
 
 - fix: exclude Neovim test log from releases (#98) (d2723ec)
