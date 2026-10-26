@@ -3,6 +3,23 @@
   "version": 1,
   "schemas": [
     {
+      "name": "WaveDrom",
+      "description": "WaveJSON: WaveDrom digital timing diagram, bit-field (register) and logic circuit description",
+      "fileMatch": [
+        "*.wavedrom.json",
+        "*.wavedrom.json5",
+        "*.wavejson",
+        "*.wd.json"
+      ],
+      "url": "https://wavedrom.com/schema/wavedrom.json"
+    },
+    {
+      "name": "Talewright story manifest",
+      "description": "Talewright story manifest (story.talewright.yaml) for Tale interactive stories",
+      "fileMatch": ["*.talewright.yaml"],
+      "url": "https://raw.githubusercontent.com/squid-farm/talewright/main/tooling/vscode-talewright/schemas/story.schema.json"
+    },
+    {
       "name": "AI Page Manifest",
       "description": "AI Page Manifest (AIPM) v1.2.0, per-page .ai.json metadata for AI crawlers and answer engines",
       "fileMatch": ["*.ai.json"],
@@ -34,6 +51,16 @@
       "description": "glslint project config and shader-dialect preset (glslint.toml): ecosystem detection, #pragma expansion, shared-library and injected-define declarations",
       "fileMatch": ["glslint.toml"],
       "url": "https://raw.githubusercontent.com/johncarmack1984/glslint/main/schema/glslint.schema.json"
+    },
+    {
+      "name": "MeasureMap",
+      "description": "MeasureMap: the measure (bar) structure of a music score, used to align different editions and encodings of a piece",
+      "fileMatch": ["*.mm.json"],
+      "url": "https://measure-map.github.io/specification/schema/latest/measuremap.schema.json",
+      "versions": {
+        "1.0.0": "https://measure-map.github.io/specification/schema/1.0.0/measuremap.schema.json",
+        "1.0.1": "https://measure-map.github.io/specification/schema/1.0.1/measuremap.schema.json"
+      }
     },
     {
       "name": "Mermaid config",
@@ -322,21 +349,24 @@
       "name": "ABCClinicalDemandForecast",
       "description": "ABCClinicalDemandForecast defining the structure of clinical trial demand forecasting data in ABC-Plan",
       "fileMatch": ["abc-clinical-demand-forecast-*.json"],
-      "url": "https://www.schemastore.org/abc-clinical-demand-forecast-5.1.0.json",
+      "url": "https://www.schemastore.org/abc-clinical-demand-forecast-6.0.0.json",
       "versions": {
         "1.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-1.0.0.json",
         "2.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-2.0.0.json",
         "3.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-3.0.0.json",
         "4.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-4.0.0.json",
         "5.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-5.0.0.json",
-        "5.1.0": "https://www.schemastore.org/abc-clinical-demand-forecast-5.1.0.json"
+        "5.1.0": "https://www.schemastore.org/abc-clinical-demand-forecast-5.1.0.json",
+        "5.2.0": "https://www.schemastore.org/abc-clinical-demand-forecast-5.2.0.json",
+        "5.3.0": "https://www.schemastore.org/abc-clinical-demand-forecast-5.3.0.json",
+        "6.0.0": "https://www.schemastore.org/abc-clinical-demand-forecast-6.0.0.json"
       }
     },
     {
       "name": "ABCSupplyPlan",
       "description": "ABCSupplyPlan representing all the state for performing inventory optimization and expiry analysis in ABC-Plan MasterPlanner",
       "fileMatch": ["abc-supply-plan-*.json"],
-      "url": "https://www.schemastore.org/abc-supply-plan-14.2.0.json",
+      "url": "https://www.schemastore.org/abc-supply-plan-14.3.0.json",
       "versions": {
         "1.0.0": "https://www.schemastore.org/abc-supply-plan-1.0.0.json",
         "2.0.0": "https://www.schemastore.org/abc-supply-plan-2.0.0.json",
@@ -358,7 +388,8 @@
         "13.0.0": "https://www.schemastore.org/abc-supply-plan-13.0.0.json",
         "14.0.0": "https://www.schemastore.org/abc-supply-plan-14.0.0.json",
         "14.1.0": "https://www.schemastore.org/abc-supply-plan-14.1.0.json",
-        "14.2.0": "https://www.schemastore.org/abc-supply-plan-14.2.0.json"
+        "14.2.0": "https://www.schemastore.org/abc-supply-plan-14.2.0.json",
+        "14.3.0": "https://www.schemastore.org/abc-supply-plan-14.3.0.json"
       }
     },
     {
@@ -577,6 +608,12 @@
       "description": "A OpenJS Architect",
       "fileMatch": ["arc.json", "arc.yml", "arc.yaml"],
       "url": "https://raw.githubusercontent.com/architect/parser/v2.3.0/arc-schema.json"
+    },
+    {
+      "name": "arch-lint.toml",
+      "description": "Configuration file for arch-lint, an architecture linter for Rust and multi-language projects",
+      "fileMatch": ["arch-lint.toml", ".arch-lint.toml"],
+      "url": "https://raw.githubusercontent.com/ynishi/arch-lint/main/schema/arch-lint.schema.json"
     },
     {
       "name": "Archival editor configuration",
@@ -1692,6 +1729,12 @@
       "url": "https://raw.githubusercontent.com/eliashaeussler/cache-warmup/main/res/cache-warmup-config.schema.json"
     },
     {
+      "name": "Calibration Reporting Standard (CRS) v0.1",
+      "description": "13-field structured attestation protocol for AI agent calibration disclosure in regulated financial systems. Implements ISO 42001 Clause 9.1 for agentic AI",
+      "fileMatch": ["crs-attestation.json", "*.crs-attestation.json"],
+      "url": "https://ericchantc.github.io/crs-specification/crs-v0.1-schema.json"
+    },
+    {
       "name": "Calqulus pipeline",
       "description": "Qualisys Calqulus pipeline",
       "fileMatch": ["*.calqulus.yaml", "*.calqulus.yml"],
@@ -2487,6 +2530,12 @@
       "url": "https://www.schemastore.org/compile-commands.json"
     },
     {
+      "name": "complexipy",
+      "description": "complexipy cognitive complexity analyzer configuration file",
+      "fileMatch": ["complexipy.toml", ".complexipy.toml"],
+      "url": "https://www.schemastore.org/complexipy.json"
+    },
+    {
       "name": "commands.json",
       "description": "Config file for Command Task Runner",
       "fileMatch": ["commands.json"],
@@ -2719,6 +2768,15 @@
       "description": "A open-source project contribution data by Mozilla",
       "fileMatch": ["contribute.json"],
       "url": "https://raw.githubusercontent.com/mozilla/contribute.json/master/schema.json"
+    },
+    {
+      "name": "Cosmoner app",
+      "description": "Cosmoner app deployment template",
+      "fileMatch": [
+        "**/.cosmoner/deployment.yaml",
+        "**/.cosmoner/deployment.yml"
+      ],
+      "url": "https://cosmoner.com/schemas/app.schema.json"
     },
     {
       "name": "crowdin.yml",
@@ -4434,6 +4492,12 @@
       "url": "https://www.schemastore.org/grunt-task.json"
     },
     {
+      "name": "gspot",
+      "description": "gspot settings file that selects linters and agent rules for a repository",
+      "fileMatch": ["gspot.toml"],
+      "url": "https://generativespotting.com/gspot.schema.json"
+    },
+    {
       "name": "HashiCorp Vault",
       "description": "HashiCorp's Vault configuration file",
       "fileMatch": ["vault.json", "vault.config.json"],
@@ -4995,7 +5059,7 @@
       "name": "Kestra flow file",
       "description": "Kestra Flow definition file, see: kestra.io/docs/workflow-components/flow#flow-sample",
       "fileMatch": ["**/flows/*.yml"],
-      "url": "https://www.schemastore.org/kestra-0.19.0.json",
+      "url": "https://api.kestra.io/v1/plugins/schemas/flow",
       "versions": {
         "0.18.0": "https://www.schemastore.org/kestra-0.18.0.json",
         "0.18.1": "https://www.schemastore.org/kestra-0.18.1.json",
@@ -5280,6 +5344,12 @@
       "description": "Power BI linguistic schema definition",
       "fileMatch": ["*.lsdl.yaml", "*.lsdl.json"],
       "url": "https://www.schemastore.org/lsdlschema.json"
+    },
+    {
+      "name": ".luarc.json",
+      "description": "Lua language server (LuaLS) settings file. Documentation: https://luals.github.io/wiki/settings/",
+      "fileMatch": [".luarc.json", ".luarc.jsonc"],
+      "url": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json"
     },
     {
       "name": ".luaurc",
@@ -7588,6 +7658,12 @@
       "url": "https://www.schemastore.org/sourcemap-v3.json"
     },
     {
+      "name": "sourceledger sources.toml",
+      "description": "Manifest of the public sources a sourceledger dataset is built from",
+      "fileMatch": [],
+      "url": "https://raw.githubusercontent.com/simonvanlierde/sourceledger/main/src/sourceledger/sources.schema.json"
+    },
+    {
       "name": "Sourcery",
       "description": "Sourcery YAML files",
       "fileMatch": [".sourcery.yaml"],
@@ -7801,6 +7877,12 @@
       "description": "Configuration file for Stale for closing abandoned issues and pull requests. Documentation: https://probot.github.io/apps/stale/",
       "fileMatch": ["**/.github/stale.yml"],
       "url": "https://www.schemastore.org/stale.json"
+    },
+    {
+      "name": "stamp policy",
+      "description": "Merge-gate policy for stamp, the approve-first PR reviewer. Documentation: https://github.com/jagreehal/stamp",
+      "fileMatch": ["**/.stamp/policy.yml"],
+      "url": "https://cdn.jsdelivr.net/npm/@jagreehal/stamp/.stamp/policy.schema.json"
     },
     {
       "name": "Starfish",
@@ -11817,7 +11899,7 @@
       "name": "runspec",
       "description": "Interface specification for anything runnable — scripts, apps, and MCP tools",
       "fileMatch": ["runspec.toml"],
-      "url": "https://raw.githubusercontent.com/JasonFinestone/runspec/main/schema/runspec.schema.json"
+      "url": "https://runspec.app/runspec.schema.json"
     },
     {
       "name": "dacier.yml",
