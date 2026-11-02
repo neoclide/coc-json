@@ -3,6 +3,12 @@
   "version": 1,
   "schemas": [
     {
+      "name": "Ramoira brand file",
+      "description": "A brand's meaning and rules in the open Ramoira format (spec 3.x)",
+      "fileMatch": ["**/ramoira/brand.schema.json"],
+      "url": "https://ramoira.com/schema/v3/SPEC.schema.json"
+    },
+    {
       "name": "WaveDrom",
       "description": "WaveJSON: WaveDrom digital timing diagram, bit-field (register) and logic circuit description",
       "fileMatch": [
@@ -280,6 +286,12 @@
       "description": "Aerleon policy file",
       "fileMatch": ["**/policies/**/*.yaml"],
       "url": "https://raw.githubusercontent.com/aerleon/aerleon/main/schemas/aerleon-policies.schema.json"
+    },
+    {
+      "name": "AER-1 agent execution receipt",
+      "description": "Verifiable execution receipt for AI agent tool calls (AER-1, IETF draft-zambo-aer1-26)",
+      "fileMatch": ["*.aer1.json"],
+      "url": "https://zambo.dev/aer-1/schema.json"
     },
     {
       "name": "Agent Run Metrics",
@@ -2002,6 +2014,12 @@
       "description": "Configuration file for Claude Code",
       "fileMatch": ["**/.claude/settings.json"],
       "url": "https://www.schemastore.org/claude-code-settings.json"
+    },
+    {
+      "name": "Claudexor Project Configuration",
+      "description": "Project settings for the Claudexor coding-agent control plane",
+      "fileMatch": ["**/.claudexor/config.yaml"],
+      "url": "https://cdn.jsdelivr.net/npm/@claudexor/schema@4.8.1/generated/ProjectConfig.schema.json"
     },
     {
       "name": "cmakefmt",
@@ -3882,6 +3900,12 @@
       "url": "https://unpkg.com/knip@6/schema-jsonc.json"
     },
     {
+      "name": "Kobweb conf.yaml",
+      "description": "Configuration file for a Kobweb (Kotlin web framework) site",
+      "fileMatch": ["**/.kobweb/conf.yaml"],
+      "url": "https://raw.githubusercontent.com/varabyte/kobweb/main/schemas/kobweb-conf.schema.json"
+    },
+    {
       "name": "KSail",
       "description": "Configuration for KSail",
       "fileMatch": [
@@ -4208,6 +4232,12 @@
         "*.gitresume.yml"
       ],
       "url": "https://gitresume.co/schema/resume.schema.json"
+    },
+    {
+      "name": "glsec",
+      "description": "Configuration file for glsec, a security linter for GitLab CI/CD pipelines. Documentation: https://github.com/glsec/glsec#configuration-file",
+      "fileMatch": [".glsec.yml"],
+      "url": "https://raw.githubusercontent.com/glsec/glsec/main/schema/glsec.schema.json"
     },
     {
       "name": "Ansible Execution Environment",
@@ -7066,6 +7096,12 @@
       "url": "https://raw.githubusercontent.com/MarcoIeni/release-plz/main/.schema/latest.json"
     },
     {
+      "name": "relwolf",
+      "description": "relwolf release bot configuration file for GitLab and GitHub",
+      "fileMatch": ["relwolf.yaml", "relwolf.yml"],
+      "url": "https://relwolf.lupiq.io/schema.json"
+    },
+    {
       "name": ".remarkrc",
       "description": "A remark configuration file",
       "fileMatch": [
@@ -8278,15 +8314,20 @@
       "url": "https://cdn.jsdelivr.net/npm/tsup/schema.json"
     },
     {
-      "name": "ttheme market",
-      "description": "Market file of ttheme, which names a repository of terminal palettes",
-      "fileMatch": ["ttheme-market.toml"],
-      "url": "https://www.schemastore.org/ttheme-market.json"
+      "name": "ttheme marketplace",
+      "description": "Marketplace file of ttheme, which names a repository of terminal palettes",
+      "fileMatch": ["ttheme-marketplace.toml"],
+      "url": "https://www.schemastore.org/ttheme-marketplace.json"
     },
     {
       "name": "ttheme palette",
       "description": "Terminal palette file of ttheme",
       "url": "https://www.schemastore.org/ttheme-palette.json"
+    },
+    {
+      "name": "ttheme work",
+      "description": "Work file of ttheme: a work and its characters, which terminal palettes are of",
+      "url": "https://www.schemastore.org/ttheme-work.json"
     },
     {
       "name": "tusk.yml",
